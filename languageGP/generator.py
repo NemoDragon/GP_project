@@ -81,13 +81,13 @@ class RandomGPlanguageGenerator:
         if depth > self.block_depth:
             return "{ " + self.generate_assignment() + " }"
         statements = [self.generate_statement(depth) for i in range(self.block_size)]
-        return "{ \n\t" + "".join(statements) + " \n}"
+        return "{ " + " ".join(statements) + " }"
 
     def generate_program(self):
         return "\n".join(self.generate_statement() for i in range(self.program_size))
 
 
 if __name__ == "__main__":
-    generator = RandomGPlanguageGenerator(program_size=2, block_size=1, block_depth=2)
+    generator = RandomGPlanguageGenerator(program_size=2, block_size=2, block_depth=2)
     random_program = generator.generate_program()
     print(random_program)
