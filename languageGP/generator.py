@@ -1,9 +1,11 @@
 import random
 
+
 class RandomGPlanguageGenerator:
-    def __init__(self, program_size=10, block_size=3):
+    def __init__(self, program_size=10, block_size=3, block_depth=2):
         self.program_size = program_size
         self.block_size = block_size
+        self.block_depth = block_depth
 
     operators = ["+", "-", "*", "/"]
     comparison_ops = ["==", "!=", "<", "<=", ">", ">="]
@@ -25,8 +27,9 @@ class RandomGPlanguageGenerator:
         return f"var{random.randint(1, 10)}"
 
     def generate_expression(self, depth=0):
-        if depth > 2 or random.random() < 0.3:
-            return random.choice([self.generate_value(), self.generate_float(), self.generate_str(), self.generate_variable()])
+        if depth > self.block_depth or random.random() < 0.3:
+            return random.choice(
+                [self.generate_value(), self.generate_float(), self.generate_str(), self.generate_variable()])
         else:
             left = self.generate_expression(depth + 1)
             right = self.generate_expression(depth + 1)
@@ -63,7 +66,7 @@ class RandomGPlanguageGenerator:
         return f"{var} = in();"
 
     def generate_statement(self, depth=0):
-        if depth > 2:
+        if depth > self.block_depth:
             return self.generate_assignment()
         stmt_type = random.choice([
             lambda: self.generate_if_statement(depth),
@@ -75,7 +78,7 @@ class RandomGPlanguageGenerator:
         return stmt_type()
 
     def generate_code_block(self, depth=0):
-        if depth > 2:
+        if depth > self.block_depth:
             return "{ " + self.generate_assignment() + " }"
         statements = [self.generate_statement(depth) for i in range(self.block_size)]
         return "{ \n\t" + "".join(statements) + " \n}"
@@ -84,8 +87,7 @@ class RandomGPlanguageGenerator:
         return "\n".join(self.generate_statement() for i in range(self.program_size))
 
 
-# Użycie klasy
 if __name__ == "__main__":
-    generator = RandomGPlanguageGenerator(program_size=2, block_size=1)
+    generator = RandomGPlanguageGenerator(program_size=2, block_size=1, block_depth=2)
     random_program = generator.generate_program()
     print(random_program)
