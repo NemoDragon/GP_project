@@ -14,18 +14,43 @@ class GPlanguageVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by GPlanguageParser#value.
-    def visitValue(self, ctx:GPlanguageParser.ValueContext):
+    # Visit a parse tree produced by GPlanguageParser#statement.
+    def visitStatement(self, ctx:GPlanguageParser.StatementContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by GPlanguageParser#variable_reference.
-    def visitVariable_reference(self, ctx:GPlanguageParser.Variable_referenceContext):
+    # Visit a parse tree produced by GPlanguageParser#if_statement.
+    def visitIf_statement(self, ctx:GPlanguageParser.If_statementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by GPlanguageParser#assignment.
+    def visitAssignment(self, ctx:GPlanguageParser.AssignmentContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by GPlanguageParser#loop_statement.
+    def visitLoop_statement(self, ctx:GPlanguageParser.Loop_statementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by GPlanguageParser#output_statement.
+    def visitOutput_statement(self, ctx:GPlanguageParser.Output_statementContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by GPlanguageParser#input_statement.
+    def visitInput_statement(self, ctx:GPlanguageParser.Input_statementContext):
         return self.visitChildren(ctx)
 
 
     # Visit a parse tree produced by GPlanguageParser#expression.
     def visitExpression(self, ctx:GPlanguageParser.ExpressionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by GPlanguageParser#code_block.
+    def visitCode_block(self, ctx:GPlanguageParser.Code_blockContext):
         return self.visitChildren(ctx)
 
 
@@ -49,28 +74,13 @@ class GPlanguageVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by GPlanguageParser#assignment.
-    def visitAssignment(self, ctx:GPlanguageParser.AssignmentContext):
+    # Visit a parse tree produced by GPlanguageParser#value.
+    def visitValue(self, ctx:GPlanguageParser.ValueContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by GPlanguageParser#code_block.
-    def visitCode_block(self, ctx:GPlanguageParser.Code_blockContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by GPlanguageParser#loop_statement.
-    def visitLoop_statement(self, ctx:GPlanguageParser.Loop_statementContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by GPlanguageParser#if_statement.
-    def visitIf_statement(self, ctx:GPlanguageParser.If_statementContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by GPlanguageParser#statement.
-    def visitStatement(self, ctx:GPlanguageParser.StatementContext):
+    # Visit a parse tree produced by GPlanguageParser#variable_reference.
+    def visitVariable_reference(self, ctx:GPlanguageParser.Variable_referenceContext):
         return self.visitChildren(ctx)
 
 

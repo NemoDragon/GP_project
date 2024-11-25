@@ -17,21 +17,57 @@ class GPlanguageListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by GPlanguageParser#value.
-    def enterValue(self, ctx:GPlanguageParser.ValueContext):
+    # Enter a parse tree produced by GPlanguageParser#statement.
+    def enterStatement(self, ctx:GPlanguageParser.StatementContext):
         pass
 
-    # Exit a parse tree produced by GPlanguageParser#value.
-    def exitValue(self, ctx:GPlanguageParser.ValueContext):
+    # Exit a parse tree produced by GPlanguageParser#statement.
+    def exitStatement(self, ctx:GPlanguageParser.StatementContext):
         pass
 
 
-    # Enter a parse tree produced by GPlanguageParser#variable_reference.
-    def enterVariable_reference(self, ctx:GPlanguageParser.Variable_referenceContext):
+    # Enter a parse tree produced by GPlanguageParser#if_statement.
+    def enterIf_statement(self, ctx:GPlanguageParser.If_statementContext):
         pass
 
-    # Exit a parse tree produced by GPlanguageParser#variable_reference.
-    def exitVariable_reference(self, ctx:GPlanguageParser.Variable_referenceContext):
+    # Exit a parse tree produced by GPlanguageParser#if_statement.
+    def exitIf_statement(self, ctx:GPlanguageParser.If_statementContext):
+        pass
+
+
+    # Enter a parse tree produced by GPlanguageParser#assignment.
+    def enterAssignment(self, ctx:GPlanguageParser.AssignmentContext):
+        pass
+
+    # Exit a parse tree produced by GPlanguageParser#assignment.
+    def exitAssignment(self, ctx:GPlanguageParser.AssignmentContext):
+        pass
+
+
+    # Enter a parse tree produced by GPlanguageParser#loop_statement.
+    def enterLoop_statement(self, ctx:GPlanguageParser.Loop_statementContext):
+        pass
+
+    # Exit a parse tree produced by GPlanguageParser#loop_statement.
+    def exitLoop_statement(self, ctx:GPlanguageParser.Loop_statementContext):
+        pass
+
+
+    # Enter a parse tree produced by GPlanguageParser#output_statement.
+    def enterOutput_statement(self, ctx:GPlanguageParser.Output_statementContext):
+        pass
+
+    # Exit a parse tree produced by GPlanguageParser#output_statement.
+    def exitOutput_statement(self, ctx:GPlanguageParser.Output_statementContext):
+        pass
+
+
+    # Enter a parse tree produced by GPlanguageParser#input_statement.
+    def enterInput_statement(self, ctx:GPlanguageParser.Input_statementContext):
+        pass
+
+    # Exit a parse tree produced by GPlanguageParser#input_statement.
+    def exitInput_statement(self, ctx:GPlanguageParser.Input_statementContext):
         pass
 
 
@@ -41,6 +77,15 @@ class GPlanguageListener(ParseTreeListener):
 
     # Exit a parse tree produced by GPlanguageParser#expression.
     def exitExpression(self, ctx:GPlanguageParser.ExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by GPlanguageParser#code_block.
+    def enterCode_block(self, ctx:GPlanguageParser.Code_blockContext):
+        pass
+
+    # Exit a parse tree produced by GPlanguageParser#code_block.
+    def exitCode_block(self, ctx:GPlanguageParser.Code_blockContext):
         pass
 
 
@@ -80,48 +125,21 @@ class GPlanguageListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by GPlanguageParser#assignment.
-    def enterAssignment(self, ctx:GPlanguageParser.AssignmentContext):
+    # Enter a parse tree produced by GPlanguageParser#value.
+    def enterValue(self, ctx:GPlanguageParser.ValueContext):
         pass
 
-    # Exit a parse tree produced by GPlanguageParser#assignment.
-    def exitAssignment(self, ctx:GPlanguageParser.AssignmentContext):
-        pass
-
-
-    # Enter a parse tree produced by GPlanguageParser#code_block.
-    def enterCode_block(self, ctx:GPlanguageParser.Code_blockContext):
-        pass
-
-    # Exit a parse tree produced by GPlanguageParser#code_block.
-    def exitCode_block(self, ctx:GPlanguageParser.Code_blockContext):
+    # Exit a parse tree produced by GPlanguageParser#value.
+    def exitValue(self, ctx:GPlanguageParser.ValueContext):
         pass
 
 
-    # Enter a parse tree produced by GPlanguageParser#loop_statement.
-    def enterLoop_statement(self, ctx:GPlanguageParser.Loop_statementContext):
+    # Enter a parse tree produced by GPlanguageParser#variable_reference.
+    def enterVariable_reference(self, ctx:GPlanguageParser.Variable_referenceContext):
         pass
 
-    # Exit a parse tree produced by GPlanguageParser#loop_statement.
-    def exitLoop_statement(self, ctx:GPlanguageParser.Loop_statementContext):
-        pass
-
-
-    # Enter a parse tree produced by GPlanguageParser#if_statement.
-    def enterIf_statement(self, ctx:GPlanguageParser.If_statementContext):
-        pass
-
-    # Exit a parse tree produced by GPlanguageParser#if_statement.
-    def exitIf_statement(self, ctx:GPlanguageParser.If_statementContext):
-        pass
-
-
-    # Enter a parse tree produced by GPlanguageParser#statement.
-    def enterStatement(self, ctx:GPlanguageParser.StatementContext):
-        pass
-
-    # Exit a parse tree produced by GPlanguageParser#statement.
-    def exitStatement(self, ctx:GPlanguageParser.StatementContext):
+    # Exit a parse tree produced by GPlanguageParser#variable_reference.
+    def exitVariable_reference(self, ctx:GPlanguageParser.Variable_referenceContext):
         pass
 
 
