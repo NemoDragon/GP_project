@@ -26,7 +26,7 @@ class TreeSerializer:
             left, right = node.children
             op = node.value
             self.visit_node(left, program_code)
-            program_code.append(op)
+            program_code.append(f' {op} ')
             self.visit_node(right, program_code)
 
         elif node.node_type in ('if', 'loop'):
