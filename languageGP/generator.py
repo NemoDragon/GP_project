@@ -9,6 +9,7 @@ class RandomGPlanguageGenerator:
 
     operators = ["+", "-", "*", "/"]
     comparison_ops = ["==", "!=", "<", "<=", ">", ">="]
+    log_ops = ["and", "or"]
 
     @staticmethod
     def generate_value():
@@ -27,7 +28,7 @@ class RandomGPlanguageGenerator:
         return f"var{random.randint(1, 10)}"
 
     def generate_expression(self, depth=0):
-        if depth > self.block_depth or random.random() < 0.3:
+        if depth > self.block_depth or random.random() < 0.5:
             return random.choice(
                 [self.generate_value(), self.generate_float(), self.generate_str(), self.generate_variable()])
         else:
@@ -36,19 +37,29 @@ class RandomGPlanguageGenerator:
             op = random.choice(self.operators)
             return f"{left} {op} {right}"
 
-    def generate_condition(self):
-        left = random.choice([self.generate_value(), self.generate_variable()])
-        right = random.choice([self.generate_value(), self.generate_variable()])
-        op = random.choice(self.comparison_ops)
-        return f"{left} {op} {right}"
+    def generate_condition(self, depth):
+        if depth == 1:
+            left = random.choice([self.generate_value(), self.generate_variable()])
+            right = random.choice([self.generate_value(), self.generate_variable()])
+            op = random.choice(self.comparison_ops)
+            left1 = random.choice([self.generate_value(), self.generate_variable()])
+            right1 = random.choice([self.generate_value(), self.generate_variable()])
+            op1 = random.choice(self.comparison_ops)
+            log = random.choice(self.log_ops)
+            return f"{left} {op} {right} {log} {left1} {op1} {right1}"
+        else:
+            left = random.choice([self.generate_value(), self.generate_variable()])
+            right = random.choice([self.generate_value(), self.generate_variable()])
+            op = random.choice(self.comparison_ops)
+            return f"{left} {op} {right}"
 
     def generate_if_statement(self, depth=0):
-        condition = self.generate_condition()
+        condition = self.generate_condition(random.randint(0, 1))
         body = self.generate_code_block(depth + 1)
         return f"if ({condition}) {body}"
 
     def generate_loop_statement(self, depth=0):
-        condition = self.generate_condition()
+        condition = self.generate_condition(random.randint(0, 1))
         body = self.generate_code_block(depth + 1)
         return f"loop ({condition}) {body}"
 

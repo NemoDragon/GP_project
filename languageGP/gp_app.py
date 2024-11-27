@@ -11,6 +11,7 @@ class GpApp:
         self.mutation_prob = mutation_prob
 
     pop = []
+
     @staticmethod
     # mutation - deletes one node of a program and generates new program in the place of the deleted node
     def mutate(parent: str) -> str:
@@ -47,7 +48,7 @@ class GpApp:
             while "out(" in s:
                 out_idx = s.index("out(")
                 right_idx = s.index(")", out_idx)
-                output += s[out_idx + 4:right_idx]
+                output += "_" + s[out_idx + 4:right_idx] if output != "" else s[out_idx + 4:right_idx]
                 s = s[right_idx:]
         print(output)
         if output == "":
@@ -59,9 +60,8 @@ class GpApp:
         elif re.search(r'[a-z]', output):
             fitness = 100 * sum([x in "abcdefghijklmnoqprstuvwxyz" for x in list(output)])
         else:
-            fitness = abs(eval(output))
+            fitness = abs(eval(output.replace("_", "+")))
         return fitness
-
 
     # tournament - chooses randomly 2 / 5 / 10 programs from population and checks their fitness, programs with
     # the highest fitness value in the tournament wins, deletes programs with lower fitness value
@@ -77,8 +77,6 @@ class GpApp:
                 if e[1] != min_value:
                     self.pop.remove(e[0])
 
-
-
     # create_random_population - generates population of programs and inserts them into an array
     def create_random_population(self) -> None:
         for i in range(self.pop_size):
@@ -88,7 +86,6 @@ class GpApp:
             generator = RandomGPlanguageGenerator(prog_size, block_size, block_depth)
             prog = generator.generate_program()
             self.pop.append(prog)
-
 
     @staticmethod
     # evolve - [now it is a test function] later it will manage the process of the program evolution
@@ -111,7 +108,7 @@ class GpApp:
         print(cross1)
         print("cross2")
         print(cross2)
-        ev = GpApp.evaluate(cross2, 14)
+        ev = GpApp.evaluate("out(14)", 14)
         print(ev)
 
 
@@ -123,9 +120,6 @@ def main():
     print(gp.pop)
 
 
-
 if __name__ == "__main__":
     GpApp.evolve()
     main()
-
-
