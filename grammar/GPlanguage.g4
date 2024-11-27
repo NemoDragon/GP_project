@@ -68,7 +68,7 @@ boolean_factor
     ;
 
 relational_expression
-    : (variable_reference | value) op=(EQ | NEQ | LT | LTE | GT | GTE) (variable_reference | value)
+    : (variable_reference | value | arithmetic_expression) op=(EQ | NEQ | LT | LTE | GT | GTE) (variable_reference | value | arithmetic_expression)
     ;
 
 arithmetic_expression: arithmetic_expression op=(PLUS | MINUS | MULT | DIV) arithmetic_expression | value| variable_reference;
