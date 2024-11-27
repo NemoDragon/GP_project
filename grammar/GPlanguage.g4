@@ -39,9 +39,9 @@ ID : [a-zA-Z_][a-zA-Z0-9_]* ;
 
 WS : [ \t\r\n]+ -> skip ;
 
-program : statement;
+program : statement+;
 
-statement : statement statement | if_statement | assignment SEMI | loop_statement | output_statement | input_statement;
+statement : if_statement | assignment SEMI | loop_statement | output_statement | input_statement;
 
 if_statement : IF LPAREN expression RPAREN code_block;
 
@@ -55,7 +55,7 @@ input_statement : ID ASSIGN IN LPAREN RPAREN SEMI;
 
 expression: boolean_expression | arithmetic_expression;
 
-code_block : BLOCK_START statement BLOCK_END ;
+code_block : BLOCK_START statement+ BLOCK_END ;
 
 boolean_expression
     : boolean_factor (OR boolean_expression)? |
@@ -64,7 +64,6 @@ boolean_expression
 
 boolean_factor
     : relational_expression
-    | NOT boolean_factor
     ;
 
 relational_expression

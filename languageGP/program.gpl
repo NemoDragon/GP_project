@@ -1,0 +1,25 @@
+var3 = var1 + var2 * 7;
+
+if(var1 < 3) {
+    var4 = 1;
+    xd = in();
+    out("ADsadsadad");
+
+    loop(a != 2 and b > 3) {
+        out(1 + a);
+        c = a;
+    }
+}
+
+var3 = var1 + var2 * 7;
+
+if(var1 < 3) {
+    var4 = 1;
+    xd = in();
+    out("ADsadsadad");
+
+    loop(a != 2 and b > 3) {
+        out(1 + a);
+        c = a;
+    }
+}
