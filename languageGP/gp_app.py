@@ -1,5 +1,6 @@
 import re
 from generator import RandomGPlanguageGenerator
+from node import Node
 import random
 import copy
 
@@ -13,44 +14,70 @@ class GpApp:
     pop = []
 
     @staticmethod
+    def get_all_mutable_nodes():
+        pass
+
+    @staticmethod
     # mutation - deletes one node of a program and generates new program in the place of the deleted node
-    def mutate(parent: str) -> str:
-        parent_statements = parent.split("\n")
+    def mutate(parent):
+        parent_statements = parent.children
         prog_size = random.randint(1, 4)
         block_size = random.randint(1, 3)
-        generator = RandomGPlanguageGenerator(prog_size, block_size, 2)
+        depth = random.randint(1, 3)
+        generator = RandomGPlanguageGenerator(prog_size, block_size, depth)
         generated_node = generator.generate_program()
         statement_idx = random.randint(0, len(parent_statements) - 1)
         mutated_statements = copy.deepcopy(parent_statements)
         mutated_statements[statement_idx] = generated_node
-        return "\n".join(mutated_statements)
+        return Node('program', None, mutated_statements)
 
     @staticmethod
     # crossover - replace one node of the first program with the other node of the second program
-    def crossover(parent1: str, parent2: str) -> tuple[str, str]:
-        parent1_statements = parent1.split("\n")
-        parent2_statements = parent2.split("\n")
+    def crossover(parent1, parent2):
+        parent1_statements = parent1.children
+        parent2_statements = parent2.children
         idx_1 = random.randint(0, len(parent1_statements) - 1)
         idx_2 = random.randint(0, len(parent2_statements) - 1)
         new1_statements = copy.deepcopy(parent1_statements)
         new2_statements = copy.deepcopy(parent2_statements)
         new1_statements[idx_1] = parent2_statements[idx_2]
         new2_statements[idx_2] = parent1_statements[idx_1]
-        return "\n".join(new1_statements), "\n".join(new2_statements)
+        return Node('program', None, new1_statements), Node('program', None, new2_statements)
+
+
+
+    @staticmethod
+    def output_expression(node):
+        if isinstance(node, Node):
+            if node.node_type == 'out':
+                return GpApp.output_expression(node.children[0])
+            if node.node_type == 'expression':
+                return GpApp.output_expression(node.children[0]) + node.value + GpApp.output_expression(node.children[1])
+            else:
+                return node.value
+
+
+
+    @staticmethod
+    def traverse_node(parent, output):
+        if isinstance(parent, Node):
+            if parent.children:
+                for s in parent.children:
+                    output = GpApp.traverse_node(s, output)
+            if parent.node_type == 'out':
+                output += GpApp.output_expression(parent) if output == "" else "_" + GpApp.output_expression(parent)
+        return output
+
+
 
     @staticmethod
     # evaluate - calculates the fitness value of the program, better programs have less fitness value
-    def evaluate(program: str, result: int) -> float:
-        statements = program.split("\n")
-        output = ""
+    def evaluate(program, result) -> float:
+        output = GpApp.traverse_node(program, "")
         fitness = 0
-        for s in statements:
-            while "out(" in s:
-                out_idx = s.index("out(")
-                right_idx = s.index(")", out_idx)
-                output += "_" + s[out_idx + 4:right_idx] if output != "" else s[out_idx + 4:right_idx]
-                s = s[right_idx:]
+        print("==================")
         print(output)
+        print("==================")
         if output == "":
             fitness = 100000
         elif output == f'{result}':
@@ -108,8 +135,8 @@ class GpApp:
         print(cross1)
         print("cross2")
         print(cross2)
-        ev = GpApp.evaluate("out(14)", 14)
-        print(ev)
+        #ev = GpApp.evaluate("out(14)", 14)
+        #print(ev)
 
 
 def main():
