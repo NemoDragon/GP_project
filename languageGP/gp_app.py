@@ -14,36 +14,51 @@ class GpApp:
     pop = []
 
     @staticmethod
-    def get_all_mutable_nodes():
-        pass
+    def get_all_mutable_nodes(node, elements):
+        if isinstance(node, Node):
+            for n in node.children:
+                if n.node_type in ['if', 'loop', 'assignment', 'out', 'in']:
+                    elements.append((n, node))
+                    if n.node_type in ['if', 'loop']:
+                        GpApp.get_all_mutable_nodes(n.children[1], elements)
 
     @staticmethod
     # mutation - deletes one node of a program and generates new program in the place of the deleted node
     def mutate(parent):
-        parent_statements = parent.children
+        parent1 = copy.deepcopy(parent)
+        parent_statements = []
+        GpApp.get_all_mutable_nodes(parent1, parent_statements)
         prog_size = random.randint(1, 4)
         block_size = random.randint(1, 3)
         depth = random.randint(1, 3)
         generator = RandomGPlanguageGenerator(prog_size, block_size, depth)
         generated_node = generator.generate_program()
-        statement_idx = random.randint(0, len(parent_statements) - 1)
-        mutated_statements = copy.deepcopy(parent_statements)
-        mutated_statements[statement_idx] = generated_node
-        return Node('program', None, mutated_statements)
+        node, node_parent = random.choice(parent_statements)
+        node_idx = node_parent.children.index(node)
+        node_parent.children[node_idx] = generated_node.children[0]
+        print("zmieniono:\n" + str(node))
+        print("dodano:\n" + str(generated_node.children[0]))
+        return parent1
 
     @staticmethod
     # crossover - replace one node of the first program with the other node of the second program
     def crossover(parent1, parent2):
-        parent1_statements = parent1.children
-        parent2_statements = parent2.children
-        idx_1 = random.randint(0, len(parent1_statements) - 1)
-        idx_2 = random.randint(0, len(parent2_statements) - 1)
-        new1_statements = copy.deepcopy(parent1_statements)
-        new2_statements = copy.deepcopy(parent2_statements)
-        new1_statements[idx_1] = parent2_statements[idx_2]
-        new2_statements[idx_2] = parent1_statements[idx_1]
-        return Node('program', None, new1_statements), Node('program', None, new2_statements)
-
+        parent11 = copy.deepcopy(parent1)
+        parent22 = copy.deepcopy(parent2)
+        parent1_statements = []
+        parent2_statements = []
+        GpApp.get_all_mutable_nodes(parent11, parent1_statements)
+        GpApp.get_all_mutable_nodes(parent22, parent2_statements)
+        node1, node_parent1 = random.choice(parent1_statements)
+        node2, node_parent2 = random.choice(parent2_statements)
+        node_idx1 = node_parent1.children.index(node1)
+        node_idx2 = node_parent2.children.index(node2)
+        buffer = node_parent1.children[node_idx1]
+        node_parent1.children[node_idx1] = node_parent2.children[node_idx2]
+        node_parent2.children[node_idx2] = buffer
+        print("przeniesiono z 1 do 2:\n" + str(node1))
+        print("przeniesiono z 2 do 1:\n" + str(node2))
+        return parent11, parent22
 
 
     @staticmethod
@@ -52,11 +67,10 @@ class GpApp:
             if node.node_type == 'out':
                 return GpApp.output_expression(node.children[0])
             if node.node_type == 'expression':
-                return GpApp.output_expression(node.children[0]) + node.value + GpApp.output_expression(node.children[1])
+                return GpApp.output_expression(node.children[0]) + node.value + GpApp.output_expression(
+                    node.children[1])
             else:
                 return node.value
-
-
 
     @staticmethod
     def traverse_node(parent, output):
@@ -67,8 +81,6 @@ class GpApp:
             if parent.node_type == 'out':
                 output += GpApp.output_expression(parent) if output == "" else "_" + GpApp.output_expression(parent)
         return output
-
-
 
     @staticmethod
     # evaluate - calculates the fitness value of the program, better programs have less fitness value
