@@ -59,11 +59,6 @@ class GPlanguageVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by GPlanguageParser#boolean_factor.
-    def visitBoolean_factor(self, ctx:GPlanguageParser.Boolean_factorContext):
-        return self.visitChildren(ctx)
-
-
     # Visit a parse tree produced by GPlanguageParser#relational_expression.
     def visitRelational_expression(self, ctx:GPlanguageParser.Relational_expressionContext):
         return self.visitChildren(ctx)

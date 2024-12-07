@@ -1,6 +1,12 @@
-loop(6.16 > var10)
-{
-var7=in();
-var7=85.84;
+count = in();
+
+a = 1;
+
+i = 0;
+loop(i < count) {
+    i = i + 1;
+
+    a = a * 2;
 }
-out(76.14 * var3);
+
+out(a);

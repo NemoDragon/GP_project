@@ -98,15 +98,6 @@ class GPlanguageListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by GPlanguageParser#boolean_factor.
-    def enterBoolean_factor(self, ctx:GPlanguageParser.Boolean_factorContext):
-        pass
-
-    # Exit a parse tree produced by GPlanguageParser#boolean_factor.
-    def exitBoolean_factor(self, ctx:GPlanguageParser.Boolean_factorContext):
-        pass
-
-
     # Enter a parse tree produced by GPlanguageParser#relational_expression.
     def enterRelational_expression(self, ctx:GPlanguageParser.Relational_expressionContext):
         pass

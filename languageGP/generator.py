@@ -1,6 +1,7 @@
 import random
 from node import Node
 from serialization import TreeSerializer, TreeDeserializer
+from interpreter import GplInterpreter
 
 
 class RandomGPlanguageGenerator:
@@ -22,10 +23,6 @@ class RandomGPlanguageGenerator:
         return Node("float", f"{random.uniform(0, 100):.2f}")
 
     @staticmethod
-    def generate_str():
-        return Node("string", f'"{"".join(random.choices("abcdefghijklmnopqrstuvwxyz", k=5))}"')
-
-    @staticmethod
     def generate_variable():
         return Node("variable", f"var{random.randint(1, 10)}")
 
@@ -34,7 +31,6 @@ class RandomGPlanguageGenerator:
             return random.choice(
                 [self.generate_int(),
                  self.generate_float(),
-                 self.generate_str(),
                  self.generate_variable()])
         else:
             left = self.generate_expression(depth + 1)
@@ -107,9 +103,12 @@ if __name__ == "__main__":
     generator = RandomGPlanguageGenerator(program_size=2, block_size=2, block_depth=2)
     random_program = generator.generate_program()
     serializer = TreeSerializer()
-    serializer.serialize(random_program, 'program.gpl')
+    #serializer.serialize(random_program, 'program.gpl')
     deserializer = TreeDeserializer()
     tree = deserializer.deserialize('program.gpl')
-    print(random_program)
+    #print(random_program)
     print('==========================')
     print(tree)
+    print('==========================')
+    interpreter = GplInterpreter()
+    interpreter.execute(tree)

@@ -5,7 +5,6 @@ LOOP : 'loop' ;
 
 INTEGER_VALUE : [0-9]+ ;
 FLOAT_VALUE : [0-9]+ '.' [0-9]* | '.' [0-9]+ ;
-STRING_VALUE : '"' (~["\r\n])* '"' ;
 
 BLOCK_START : '{' ;
 BLOCK_END: '}' ;
@@ -58,12 +57,8 @@ expression: boolean_expression | arithmetic_expression;
 code_block : BLOCK_START statement+ BLOCK_END ;
 
 boolean_expression
-    : boolean_factor (OR boolean_expression)? |
-    boolean_factor (AND boolean_expression)?
-    ;
-
-boolean_factor
-    : relational_expression
+    : relational_expression (OR boolean_expression)? |
+    relational_expression (AND boolean_expression)?
     ;
 
 relational_expression
@@ -74,8 +69,8 @@ arithmetic_expression: arithmetic_expression op=(PLUS | MINUS | MULT | DIV) arit
 
 value :
     INTEGER_VALUE |
-    FLOAT_VALUE |
-    STRING_VALUE;
+    FLOAT_VALUE
+    ;
 
 variable_reference : ID ;
 

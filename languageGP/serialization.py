@@ -19,7 +19,7 @@ class TreeSerializer:
             self.visit_node(value, program_code)
             program_code.append(';\n')
 
-        elif node.node_type in ('int', 'float', 'variable', 'string'):
+        elif node.node_type in ('int', 'float', 'variable'):
             program_code.append(node.value)
 
         elif node.node_type in ('expression', 'comparison', 'logical_condition'):
@@ -91,7 +91,7 @@ class GPlanguageDeserializerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by GPlanguageParser#assignment.
     def visitAssignment(self, ctx: GPlanguageParser.AssignmentContext):
-        variable = Node('variable', ctx.ID())
+        variable = Node('variable', ctx.ID().getText())
         return Node('assignment', None,
                     [variable, self.visit(ctx.expression())])
 
@@ -106,7 +106,7 @@ class GPlanguageDeserializerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by GPlanguageParser#input_statement.
     def visitInput_statement(self, ctx: GPlanguageParser.Input_statementContext):
-        variable = Node('variable', ctx.ID())
+        variable = Node('variable', ctx.ID().getText())
         return Node('in', None, [variable])
 
     # Visit a parse tree produced by GPlanguageParser#expression.
@@ -127,10 +127,6 @@ class GPlanguageDeserializerVisitor(ParseTreeVisitor):
         if operator is None:
             return self.visitChildren(ctx)
         return Node('logical_condition', operator, self.visitChildren(ctx))
-
-    # Visit a parse tree produced by GPlanguageParser#boolean_factor.
-    def visitBoolean_factor(self, ctx: GPlanguageParser.Boolean_factorContext):
-        return self.visit(ctx.relational_expression())
 
     # Visit a parse tree produced by GPlanguageParser#relational_expression.
     def visitRelational_expression(self, ctx: GPlanguageParser.Relational_expressionContext):
@@ -169,16 +165,14 @@ class GPlanguageDeserializerVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by GPlanguageParser#value.
     def visitValue(self, ctx: GPlanguageParser.ValueContext):
-        if ctx.STRING_VALUE():
-            return Node('string', ctx.STRING_VALUE())
         if ctx.FLOAT_VALUE():
-            return Node('int', ctx.FLOAT_VALUE())
+            return Node('float', float(ctx.FLOAT_VALUE().getText()))
         if ctx.INTEGER_VALUE():
-            return Node('float', ctx.INTEGER_VALUE())
+            return Node('int', int(ctx.INTEGER_VALUE().getText()))
 
     # Visit a parse tree produced by GPlanguageParser#variable_reference.
     def visitVariable_reference(self, ctx: GPlanguageParser.Variable_referenceContext):
-        return Node('variable', ctx.ID())
+        return Node('variable', ctx.ID().getText())
 
 class TreeDeserializer:
     def __init__(self):
