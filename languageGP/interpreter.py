@@ -39,7 +39,7 @@ class GplInterpreter:
         if node.value == 'and':
             return left_value and right_value
         if node.value == 'or':
-            return left_value and right_value
+            return left_value or right_value
         raise Exception('unknown logical operator')
 
     def visit_comparison(self, node: Node) -> bool:

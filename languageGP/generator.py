@@ -5,10 +5,10 @@ from interpreter import GplInterpreter
 
 
 class RandomGPlanguageGenerator:
-    def __init__(self, program_size=10, block_size=3, block_depth=2):
+    def __init__(self, program_size=10, block_size=3, max_depth=2):
         self.program_size = program_size
         self.block_size = block_size
-        self.block_depth = block_depth
+        self.max_depth = max_depth
 
     operators = ["+", "-", "*", "/"]
     comparison_ops = ["==", "!=", "<", "<=", ">", ">="]
@@ -27,7 +27,7 @@ class RandomGPlanguageGenerator:
         return Node("variable", f"var{random.randint(1, 10)}")
 
     def generate_expression(self, depth=0):
-        if depth > self.block_depth or random.random() < 0.5:
+        if depth >= self.max_depth - 1 or random.random() < 0.5:
             return random.choice(
                 [self.generate_int(),
                  self.generate_float(),
@@ -39,12 +39,12 @@ class RandomGPlanguageGenerator:
             return Node("expression", op, [left, right])
 
     def generate_condition(self, depth):
-        left = self.generate_expression(depth)
-        right = self.generate_expression(depth)
+        left = self.generate_expression(depth + 1)
+        right = self.generate_expression(depth + 1)
         op = random.choice(self.comparison_ops)
-        if depth > 0 and random.random() < 0.5:
-            left2 = self.generate_expression(depth)
-            right2 = self.generate_expression(depth)
+        if depth < self.max_depth - 2 and random.random() < 0.5:
+            left2 = self.generate_expression(depth + 1)
+            right2 = self.generate_expression(depth + 1)
             log_op = random.choice(self.log_ops)
             return Node("logical_condition", log_op, [
                 Node("comparison", op, [left, right]),
@@ -54,22 +54,25 @@ class RandomGPlanguageGenerator:
             return Node("comparison", op, [left, right])
 
     def generate_if_statement(self, depth=0):
-        condition = self.generate_condition(depth)
+        condition = self.generate_condition(depth + 1)
         body = self.generate_code_block(depth + 1)
         return Node("if", None, [condition, body])
 
     def generate_loop_statement(self, depth=0):
-        condition = self.generate_condition(depth)
+        condition = self.generate_condition(depth + 1)
         body = self.generate_code_block(depth + 1)
         return Node("loop", None, [condition, body])
 
-    def generate_assignment(self):
+    def generate_assignment(self, depth=0):
         var = self.generate_variable()
-        expr = self.generate_expression()
+        if depth >= self.max_depth:
+            expr = random.choice([self.generate_int(), self.generate_float(), self.generate_variable()])
+        else:
+            expr = self.generate_expression(depth + 1)
         return Node("assignment", None, [var, expr])
 
-    def generate_output_statement(self):
-        expr = self.generate_expression()
+    def generate_output_statement(self, depth=0):
+        expr = self.generate_expression(depth + 1)
         return Node("out", None, [expr])
 
     def generate_input_statement(self):
@@ -77,36 +80,50 @@ class RandomGPlanguageGenerator:
         return Node("in", None, [var])
 
     def generate_statement(self, depth=0):
-        if depth > self.block_depth:
-            return self.generate_assignment()
-        stmt_type = random.choice([
-            lambda: self.generate_if_statement(depth),
-            lambda: self.generate_loop_statement(depth),
-            self.generate_assignment,
-            self.generate_output_statement,
-            self.generate_input_statement
-        ])
+        if depth >= self.max_depth - 1:
+            return random.choice([self.generate_assignment(depth),
+                                  self.generate_output_statement(depth),
+                                  self.generate_input_statement()])
+        if depth >= self.max_depth - 2:
+            stmt_type = random.choice([
+                lambda: self.generate_assignment(depth),
+                lambda: self.generate_output_statement(depth),
+                self.generate_input_statement
+            ])
+        else:
+            stmt_type = random.choice([
+                lambda: self.generate_if_statement(depth),
+                lambda: self.generate_loop_statement(depth),
+                lambda: self.generate_assignment(depth),
+                lambda: self.generate_output_statement(depth),
+                self.generate_input_statement
+            ])
         return stmt_type()
 
     def generate_code_block(self, depth=0):
-        if depth > self.block_depth:
-            return Node("block", None, [self.generate_assignment()])
-        statements = [self.generate_statement(depth) for i in range(self.block_size)]
+        if depth >= self.max_depth - 1:
+            return Node("block", None, self.generate_assignment(depth + 1))
+        statements = [self.generate_statement(depth + 1) for i in range(self.block_size)]
         return Node("block", None, statements)
 
     def generate_program(self):
-        statements = [self.generate_statement() for i in range(self.program_size)]
+        if self.max_depth < 2:
+            raise ValueError("Max depth too low for program to generate")
+        statements = [self.generate_statement(1) for i in range(self.program_size)]
         return Node("program", None, statements)
 
 
 if __name__ == "__main__":
-    generator = RandomGPlanguageGenerator(program_size=2, block_size=2, block_depth=2)
-    random_program = generator.generate_program()
+    generator = RandomGPlanguageGenerator(program_size=2, block_size=2, max_depth=5)
+    random_program = [generator.generate_program() for i in range(10)]
     serializer = TreeSerializer()
     #serializer.serialize(random_program, 'program.gpl')
     deserializer = TreeDeserializer()
     tree = deserializer.deserialize('program.gpl')
-    #print(random_program)
+    for i in random_program:
+        print("---------")
+        print(i)
+        print("---------")
     print('==========================')
     print(tree)
     print('==========================')

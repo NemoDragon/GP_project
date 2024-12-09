@@ -6,7 +6,8 @@ class Node:
 
     def __repr__(self, level=0):
         indent = "  " * level
-        repr_str = f"{indent}{self.node_type}({self.value})\n"
-        for child in self.children:
-            repr_str += child.__repr__(level + 1)
+        repr_str = f"{indent}{self.node_type}({self.value}) - depth: {level}\n"
+        if not isinstance(self.children, Node):
+            for child in self.children:
+                repr_str += child.__repr__(level + 1)
         return repr_str
