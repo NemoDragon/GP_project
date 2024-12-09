@@ -1,5 +1,7 @@
 import re
+import ast
 from generator import RandomGPlanguageGenerator
+from languageGP.interpreter import GplInterpreter
 from node import Node
 import random
 import copy
@@ -30,7 +32,7 @@ class GpApp:
         GpApp.get_all_mutable_nodes(parent1, parent_statements)
         prog_size = random.randint(1, 4)
         block_size = random.randint(1, 3)
-        depth = random.randint(1, 3)
+        depth = random.randint(2, 7)
         generator = RandomGPlanguageGenerator(prog_size, block_size, depth)
         generated_node = generator.generate_program()
         node, node_parent = random.choice(parent_statements)
@@ -82,25 +84,24 @@ class GpApp:
                 output += GpApp.output_expression(parent) if output == "" else "_" + GpApp.output_expression(parent)
         return output
 
+
+
     @staticmethod
     # evaluate - calculates the fitness value of the program, better programs have less fitness value
-    def evaluate(program, result) -> float:
-        output = GpApp.traverse_node(program, "")
-        fitness = 0
-        print("==================")
-        print(output)
-        print("==================")
-        if output == "":
-            fitness = 100000
-        elif output == f'{result}':
-            return fitness
-        elif output.replace(".", "").isnumeric():
-            fitness = abs(float(output) - result)
-        elif re.search(r'[a-z]', output):
-            fitness = 100 * sum([x in "abcdefghijklmnoqprstuvwxyz" for x in list(output)])
-        else:
-            fitness = abs(eval(output.replace("_", "+")))
-        return fitness
+    def evaluate(program, expected_input: list[int | float], expected_output: list[int | float]) -> float:
+        value = 0
+        interpreter = GplInterpreter(input_vector=expected_input)
+        program_output, program_inputs_count, instructions_count = interpreter.execute(program)
+        input_number_error = abs(len(expected_input) - program_inputs_count)
+        output_number_error = abs(len(expected_output) - len(program_output))
+        value += input_number_error * 100
+        value += output_number_error * 100
+        for i in range(len(expected_output)):
+            if i < len(program_output):
+                value += abs(program_output[i] - expected_output[i])
+            else:
+                value += expected_output[i]
+        return value
 
     # tournament - chooses randomly 2 / 5 / 10 programs from population and checks their fitness, programs with
     # the highest fitness value in the tournament wins, deletes programs with lower fitness value
@@ -109,7 +110,7 @@ class GpApp:
         size = self.pop_size // 2
         while len(self.pop) > size:
             chosen_programs = random.sample(self.pop, k=t_size)
-            evaluations = [(x, self.evaluate(x, 14)) for x in chosen_programs]
+            evaluations = [(x, self.evaluate(x, [14], [0])) for x in chosen_programs]
             min_value = min([e[1] for e in evaluations])
             for e in evaluations:
                 print(e)
@@ -121,8 +122,8 @@ class GpApp:
         for i in range(self.pop_size):
             prog_size = random.randint(1, 4)
             block_size = random.randint(1, 3)
-            block_depth = random.randint(2, 3)
-            generator = RandomGPlanguageGenerator(prog_size, block_size, block_depth)
+            max_depth = random.randint(2, 9)
+            generator = RandomGPlanguageGenerator(prog_size, block_size, max_depth)
             prog = generator.generate_program()
             self.pop.append(prog)
 
@@ -150,15 +151,32 @@ class GpApp:
         #ev = GpApp.evaluate("out(14)", 14)
         #print(ev)
 
+    def evaluate_with_problem_file(self, file_name: str, program):
+        with open(file_name, 'r') as f:
+            data = f.read().splitlines()
+        value = 0
+        for d in data:
+            inputs, outputs = ast.literal_eval(d.split("] [")[0] + "]"), ast.literal_eval("[" + d.split("] [")[1])
+            value += self.evaluate(program, inputs, outputs)
+        return value
+
+
+
+
 
 def main():
     gp = GpApp()
     gp.create_random_population()
-    print(gp.pop)
-    gp.tournament(5)
-    print(gp.pop)
+    #print(gp.pop)
+    #gp.tournament(5)
+    for p in gp.pop:
+        result_2 = gp.evaluate_with_problem_file('problem.txt', p)
+        print(result_2)
+        print(p)
+        print("============")
+
 
 
 if __name__ == "__main__":
-    GpApp.evolve()
+    #GpApp.evolve()
     main()

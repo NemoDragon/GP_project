@@ -5,10 +5,11 @@ from interpreter import GplInterpreter
 
 
 class RandomGPlanguageGenerator:
-    def __init__(self, program_size=10, block_size=3, max_depth=2):
+    def __init__(self, program_size=10, block_size=3, max_depth=2, var_number=1):
         self.program_size = program_size
         self.block_size = block_size
         self.max_depth = max_depth
+        self.var_number = var_number
 
     operators = ["+", "-", "*", "/"]
     comparison_ops = ["==", "!=", "<", "<=", ">", ">="]
@@ -16,15 +17,14 @@ class RandomGPlanguageGenerator:
 
     @staticmethod
     def generate_int():
-        return Node("int", str(random.randint(0, 100)))
+        return Node("int", int(random.randint(0, 100)))
 
     @staticmethod
     def generate_float():
-        return Node("float", f"{random.uniform(0, 100):.2f}")
+        return Node("float", float(f"{random.uniform(0, 100):.2f}"))
 
-    @staticmethod
-    def generate_variable():
-        return Node("variable", f"var{random.randint(1, 10)}")
+    def generate_variable(self):
+        return Node("variable", f"x{random.randint(1, self.var_number)}")
 
     def generate_expression(self, depth=0):
         if depth >= self.max_depth - 1 or random.random() < 0.5:
@@ -102,7 +102,7 @@ class RandomGPlanguageGenerator:
 
     def generate_code_block(self, depth=0):
         if depth >= self.max_depth - 1:
-            return Node("block", None, self.generate_assignment(depth + 1))
+            return Node("block", None, [self.generate_assignment(depth + 1) for i in range(self.block_size)])
         statements = [self.generate_statement(depth + 1) for i in range(self.block_size)]
         return Node("block", None, statements)
 
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     print('==========================')
     print(tree)
     print('==========================')
-    interpreter = GplInterpreter(input_vector=[5, 20])
+    interpreter = GplInterpreter(input_vector=[1, 20])
     output_vector, program_inputs_count, instructions_count = interpreter.execute(tree)
     print(f'instructions count: {instructions_count}, program used {program_inputs_count} inputs')
     print(output_vector)

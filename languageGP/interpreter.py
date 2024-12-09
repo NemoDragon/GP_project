@@ -26,7 +26,8 @@ class GplInterpreter:
     def dereference_variable(self, variable_name: str) -> int | float | bool:
         value = self.variables.get(variable_name)
         if value is None:
-            raise Exception(f'variable {variable_name} is not initialized')
+            return 0
+            # raise Exception(f'variable {variable_name} is not initialized')
         return value
 
     def assign_variable(self, variable_name: str, value: int | float | bool):
