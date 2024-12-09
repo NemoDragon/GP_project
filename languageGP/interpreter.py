@@ -3,8 +3,17 @@ from typing import Dict
 
 
 class GplInterpreter:
-    def __init__(self):
+    def __init__(self, input_vector: list[float | int]):
         self.variables: Dict[str, int | float | bool] = {}
+        self.input_vector = input_vector
+        self.input_index = -1
+        self.output_vector = []
+        self.instructions_count = 0
+        self.instructions_number_limit = 10000  # adjust before starting execution
+
+    def next_input_value(self):
+        self.input_index += 1
+        return self.input_vector[self.input_index] if self.input_index < len(self.input_vector) else 0
 
     def check_node_type(self, expected: str | tuple, got: Node):
         if type(expected) == tuple:
@@ -67,8 +76,8 @@ class GplInterpreter:
             return left_value / right_value
         raise Exception('unknown arithmetic operator')
 
-
     def visit_expression(self, node: Node) -> int | float | bool:
+        self.instructions_count += 1
         if node.node_type == 'logical_condition':
             return self.visit_logical_condition(node)
         if node.node_type == 'comparison':
@@ -82,6 +91,10 @@ class GplInterpreter:
         raise Exception('provided node is not an expression node')
 
     def visit_statement(self, statement: Node):
+        self.instructions_count += 1
+        if self.instructions_count > self.instructions_number_limit:
+            return
+
         if statement.node_type == 'assignment':
             variable, expression = statement.children
             expression_result = self.visit_expression(expression)
@@ -98,36 +111,37 @@ class GplInterpreter:
             condition_result = self.visit_expression(condition)
             while condition_result:
                 self.visit_code_block(block)
+                if self.instructions_count > self.instructions_number_limit:
+                    break
                 condition_result = self.visit_expression(condition)
 
         elif statement.node_type == 'in':
-            # temporary solution
-            input_value = input()
-            if '.' in input_value:
-                input_value = float(input_value)
-            else:
-                input_value = int(input_value)
-
+            input_value = self.next_input_value()
             variable = statement.children[0]
             self.assign_variable(variable.value, input_value)
 
         elif statement.node_type == 'out':
             expression = statement.children[0]
             expression_result = self.visit_expression(expression)
-            # temporary solution
-            print(expression_result)
+            self.output_vector.append(expression_result)
 
         else:
             raise Exception('tried to visit statement but provided node is not a statement node')
 
     def visit_code_block(self, node: Node):
+        self.instructions_count += 1
         self.check_node_type(('block', 'program'), node)
 
         for statement in node.children:
             self.visit_statement(statement)
+            if self.instructions_count > self.instructions_number_limit:
+                break
 
-    def execute(self, program: Node):
+    def execute(self, program: Node) -> tuple[list[float | int], int, int]:
         if program.node_type != 'program':
             raise Exception('provided node is not a root program node')
 
         self.visit_code_block(program)
+
+        # output vector, number of inputs used by program, instructions count
+        return self.output_vector, self.input_index + 1, self.instructions_count
