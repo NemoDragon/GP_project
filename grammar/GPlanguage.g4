@@ -29,7 +29,6 @@ GTE : '>=' ;
 
 AND : 'and' ;
 OR : 'or' ;
-NOT : 'not' ;
 
 ASSIGN : '=' ;
 SEMI : ';' ;
@@ -44,7 +43,9 @@ statement : if_statement | assignment SEMI | loop_statement | output_statement |
 
 if_statement : IF LPAREN expression RPAREN code_block;
 
-assignment : ID ASSIGN expression;
+array_create : LSQUARE arithmetic_expression RSQUARE ;
+
+assignment : ID (LSQUARE arithmetic_expression RSQUARE)? ASSIGN (expression | array_create);
 
 loop_statement : LOOP LPAREN expression RPAREN code_block ;
 
@@ -62,10 +63,14 @@ boolean_expression
     ;
 
 relational_expression
-    : (variable_reference | value | arithmetic_expression) op=(EQ | NEQ | LT | LTE | GT | GTE) (variable_reference | value | arithmetic_expression)
+    : (variable_reference | value | arithmetic_expression | array_index) op=(EQ | NEQ | LT | LTE | GT | GTE) (variable_reference | value | arithmetic_expression | array_index)
     ;
 
-arithmetic_expression: arithmetic_expression op=(PLUS | MINUS | MULT | DIV) arithmetic_expression | value| variable_reference;
+arithmetic_expression: arithmetic_expression op=(PLUS | MINUS | MULT | DIV) arithmetic_expression | value | variable_reference | array_index;
+
+array_index : variable_reference LSQUARE arithmetic_expression RSQUARE ;
+
+
 
 value :
     INTEGER_VALUE |

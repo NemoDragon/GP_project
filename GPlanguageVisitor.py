@@ -24,6 +24,11 @@ class GPlanguageVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by GPlanguageParser#array_create.
+    def visitArray_create(self, ctx:GPlanguageParser.Array_createContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by GPlanguageParser#assignment.
     def visitAssignment(self, ctx:GPlanguageParser.AssignmentContext):
         return self.visitChildren(ctx)
@@ -66,6 +71,11 @@ class GPlanguageVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by GPlanguageParser#arithmetic_expression.
     def visitArithmetic_expression(self, ctx:GPlanguageParser.Arithmetic_expressionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by GPlanguageParser#array_index.
+    def visitArray_index(self, ctx:GPlanguageParser.Array_indexContext):
         return self.visitChildren(ctx)
 
 

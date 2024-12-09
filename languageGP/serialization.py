@@ -19,8 +19,28 @@ class TreeSerializer:
             self.visit_node(value, program_code)
             program_code.append(';\n')
 
+        elif node.node_type == 'array_assignment':
+            variable, index, value = node.children
+            program_code.append(f'{variable.value}[')
+            self.visit_node(index, program_code)
+            program_code.append(']=')
+            self.visit_node(value, program_code)
+            program_code.append(';\n')
+
         elif node.node_type in ('int', 'float', 'variable'):
             program_code.append(node.value)
+
+        elif node.node_type == 'array_index':
+            variable, index = node.children
+            program_code.append(f'{variable.value}[')
+            self.visit_node(index, program_code)
+            program_code.append(']')
+
+        elif node.node_type == 'array':
+            size = node.children[0]
+            program_code.append('[')
+            self.visit_node(size, program_code)
+            program_code.append(']')
 
         elif node.node_type in ('expression', 'comparison', 'logical_condition'):
             left, right = node.children
@@ -57,7 +77,7 @@ class TreeSerializer:
 
         with open(file_name, 'w') as f:
             for code_fragment in program_code:
-                f.write(code_fragment)
+                f.write(code_fragment if isinstance(code_fragment, str) else str(code_fragment))
 
 
 class GPlanguageDeserializerVisitor(ParseTreeVisitor):
@@ -89,11 +109,22 @@ class GPlanguageDeserializerVisitor(ParseTreeVisitor):
         return Node('if', None,
                     [self.visit(ctx.expression()), self.visit(ctx.code_block())])
 
+    # Visit a parse tree produced by GPlanguageParser#array_create.
+    def visitArray_create(self, ctx: GPlanguageParser.Array_createContext):
+        return Node('array', None, [self.visit(ctx.arithmetic_expression())])
+
     # Visit a parse tree produced by GPlanguageParser#assignment.
     def visitAssignment(self, ctx: GPlanguageParser.AssignmentContext):
         variable = Node('variable', ctx.ID().getText())
-        return Node('assignment', None,
-                    [variable, self.visit(ctx.expression())])
+        if ctx.array_create():
+            value = self.visit(ctx.array_create())
+        else:
+            value = self.visit(ctx.expression())
+        if ctx.arithmetic_expression():
+            index = self.visit(ctx.arithmetic_expression())
+            return Node('array_assignment', None, [variable, index, value])
+        else:
+            return Node('assignment', None,[variable, value])
 
     # Visit a parse tree produced by GPlanguageParser#loop_statement.
     def visitLoop_statement(self, ctx: GPlanguageParser.Loop_statementContext):
@@ -173,6 +204,12 @@ class GPlanguageDeserializerVisitor(ParseTreeVisitor):
     # Visit a parse tree produced by GPlanguageParser#variable_reference.
     def visitVariable_reference(self, ctx: GPlanguageParser.Variable_referenceContext):
         return Node('variable', ctx.ID().getText())
+
+    # Visit a parse tree produced by GPlanguageParser#array_index.
+    def visitArray_index(self, ctx: GPlanguageParser.Array_indexContext):
+        variable = self.visit(ctx.variable_reference())
+        index = self.visit(ctx.arithmetic_expression())
+        return Node('array_index', None, [variable, index])
 
 class TreeDeserializer:
     def __init__(self):
