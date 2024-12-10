@@ -4,7 +4,7 @@ from typing import Dict
 
 class GplInterpreter:
     def __init__(self, input_vector: list[float | int]):
-        self.variables: Dict[str, int | float | bool] = {}
+        self.variables: Dict[str, int | float | bool | list] = {}
         self.input_vector = input_vector
         self.input_index = -1
         self.output_vector = []
@@ -23,61 +23,98 @@ class GplInterpreter:
             if got.node_type != expected:
                 raise Exception(f'tried to visit {expected} but got incorrect node')
 
-    def dereference_variable(self, variable_name: str) -> int | float | bool:
+    def dereference_variable(self, variable_name: str) -> int | float | bool | list:
         value = self.variables.get(variable_name)
         if value is None:
             return 0
-            # raise Exception(f'variable {variable_name} is not initialized')
         return value
+
+    def array_cell_value(self, variable_name: str, index: int) -> int | float | bool | list:
+        array = self.dereference_variable(variable_name)
+        if not isinstance(array, list):
+            return 0
+        if 0 <= index < len(array):
+            return array[index]
+        return 0
 
     def assign_variable(self, variable_name: str, value: int | float | bool):
         self.variables[variable_name] = value
+
+    def assign_array_cell(self, variable_name: str, index: int, value: int | float | bool):
+        variable = self.dereference_variable(variable_name)
+        if not isinstance(variable, list):
+            # If program tries to use index operator on
+            # non array variable assign 0 to this variable
+            self.assign_variable(variable_name, 0)
+            return
+
+        if 0 <= index < len(variable):
+            variable[index] = value
 
     def visit_logical_condition(self, node: Node) -> bool:
         self.check_node_type('logical_condition', node)
         left, right = node.children
         left_value, right_value = self.visit_expression(left), self.visit_expression(right)
-        if node.value == 'and':
-            return left_value and right_value
-        if node.value == 'or':
-            return left_value or right_value
+        try:
+            if node.value == 'and':
+                return left_value and right_value
+            if node.value == 'or':
+                return left_value or right_value
+        except TypeError:
+            return False
         raise Exception('unknown logical operator')
 
     def visit_comparison(self, node: Node) -> bool:
         self.check_node_type('comparison', node)
         left, right = node.children
         left_value, right_value = self.visit_expression(left), self.visit_expression(right)
-        if node.value == '<':
-            return left_value < right_value
-        if node.value == '>':
-            return left_value > right_value
-        if node.value == '<=':
-            return left_value <= right_value
-        if node.value == '>=':
-            return left_value >= right_value
-        if node.value == '==':
-            return left_value == right_value
-        if node.value == '!=':
-            return left_value == right_value
+        try:
+            if node.value == '<':
+                return left_value < right_value
+            if node.value == '>':
+                return left_value > right_value
+            if node.value == '<=':
+                return left_value <= right_value
+            if node.value == '>=':
+                return left_value >= right_value
+            if node.value == '==':
+                return left_value == right_value
+            if node.value == '!=':
+                return left_value == right_value
+        except TypeError:
+            return False
         raise Exception('unknown comparison operator')
 
     def visit_arithmetic_expression(self, node: Node) -> int | float:
         self.check_node_type('expression', node)
         left, right = node.children
         left_value, right_value = self.visit_expression(left), self.visit_expression(right)
-        if node.value == '+':
-            return left_value + right_value
-        if node.value == '-':
-            return left_value - right_value
-        if node.value == '*':
-            return left_value * right_value
-        if node.value == '/':
-            if abs(right_value) < 0.001:
-                right_value = 1
-            return left_value / right_value
+        try:
+            if node.value == '+':
+                return left_value + right_value
+            if node.value == '-':
+                return left_value - right_value
+            if node.value == '*':
+                return left_value * right_value
+            if node.value == '/':
+                if abs(right_value) < 0.001:
+                    right_value = 1
+                return left_value / right_value
+        except TypeError:
+            return 0
         raise Exception('unknown arithmetic operator')
 
-    def visit_expression(self, node: Node) -> int | float | bool:
+    def visit_array_index(self, node: Node) -> int | float | bool | list:
+        variable, index = node.children
+        index_result = self.visit_expression(index)
+        return self.array_cell_value(variable.value, int(index_result))
+
+    def visit_array(self, node: Node) -> list:
+        size_expression = node.children[0]
+        size = self.visit_expression(size_expression)
+        return [0] * int(size)
+
+    def visit_expression(self, node: Node) -> int | float | bool | list:
         self.instructions_count += 1
         if node.node_type == 'logical_condition':
             return self.visit_logical_condition(node)
@@ -87,6 +124,10 @@ class GplInterpreter:
             return self.visit_arithmetic_expression(node)
         if node.node_type in ('int', 'float'):
             return node.value
+        if node.node_type == 'array_index':
+            return self.visit_array_index(node)
+        if node.node_type == 'array':
+            return self.visit_array(node)
         if node.node_type == 'variable':
             return self.dereference_variable(node.value)
         raise Exception('provided node is not an expression node')
@@ -100,6 +141,12 @@ class GplInterpreter:
             variable, expression = statement.children
             expression_result = self.visit_expression(expression)
             self.assign_variable(variable.value, expression_result)
+
+        elif statement.node_type == 'array_assignment':
+            variable, index, expression = statement.children
+            expression_result = self.visit_expression(expression)
+            index_result = self.visit_expression(index)
+            self.assign_array_cell(variable.value, int(index_result), expression_result)
 
         elif statement.node_type == 'if':
             condition, block = statement.children

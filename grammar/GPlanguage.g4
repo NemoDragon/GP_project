@@ -70,8 +70,6 @@ arithmetic_expression: arithmetic_expression op=(PLUS | MINUS | MULT | DIV) arit
 
 array_index : variable_reference LSQUARE arithmetic_expression RSQUARE ;
 
-
-
 value :
     INTEGER_VALUE |
     FLOAT_VALUE
