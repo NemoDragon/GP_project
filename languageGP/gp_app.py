@@ -2,6 +2,7 @@ import re
 import ast
 from generator import RandomGPlanguageGenerator
 from languageGP.interpreter import GplInterpreter
+from serialization import TreeDeserializer
 from node import Node
 import random
 import copy
@@ -62,7 +63,6 @@ class GpApp:
         print("przeniesiono z 2 do 1:\n" + str(node2))
         return parent11, parent22
 
-
     @staticmethod
     def output_expression(node):
         if isinstance(node, Node):
@@ -84,11 +84,23 @@ class GpApp:
                 output += GpApp.output_expression(parent) if output == "" else "_" + GpApp.output_expression(parent)
         return output
 
+    @staticmethod
+    def convert_strings_to_arrays(input_vector: list[int | float | str]) -> list[int | float | list]:
+        result_vector = input_vector[:]
+        for i, elem in enumerate(input_vector):
+            if isinstance(elem, str):
+                result_vector[i] = GplInterpreter.string_to_array(elem)
+            else:
+                result_vector[i] = elem
+        return result_vector
+
 
 
     @staticmethod
     # evaluate - calculates the fitness value of the program, better programs have less fitness value
-    def evaluate(program, expected_input: list[int | float], expected_output: list[int | float]) -> float:
+    def evaluate(program, expected_input: list[int | float | str], expected_output: list[int | float | str]) -> float:
+        expected_input = GpApp.convert_strings_to_arrays(expected_input)
+        expected_output = GpApp.convert_strings_to_arrays(expected_output)
         value = 0
         interpreter = GplInterpreter(input_vector=expected_input)
         program_output, program_inputs_count, instructions_count = interpreter.execute(program)
@@ -98,9 +110,22 @@ class GpApp:
         value += output_number_error * 100
         for i in range(len(expected_output)):
             if i < len(program_output):
-                value += abs(program_output[i] - expected_output[i])
+                if isinstance(expected_output[i], list):
+                    output = program_output[i]
+                    if not isinstance(output, list):
+                        output = [output] + ([0] * (len(expected_output[i]) - 1))
+                    for expected, got in zip(expected_output[i], output):
+                        value += abs(expected - got)
+                else:
+                    if isinstance(program_output[i], list):
+                        value += abs(expected_output[i])
+                    else:
+                        value += abs(program_output[i] - expected_output[i])
             else:
-                value += expected_output[i]
+                if isinstance(expected_output[i], list):
+                    value += sum([abs(elem) for elem in expected_output[i]])
+                else:
+                    value += abs(expected_output[i])
         return value
 
     # tournament - chooses randomly 2 / 5 / 10 programs from population and checks their fitness, programs with
@@ -157,6 +182,8 @@ class GpApp:
         value = 0
         for d in data:
             inputs, outputs = ast.literal_eval(d.split("] [")[0] + "]"), ast.literal_eval("[" + d.split("] [")[1])
+            print(inputs)
+            print(outputs)
             value += self.evaluate(program, inputs, outputs)
         return value
 
@@ -175,8 +202,15 @@ def main():
         print(p)
         print("============")
 
-
+def test():
+    gp = GpApp()
+    deserializer = TreeDeserializer()
+    program = deserializer.deserialize('program.gpl')
+    result = gp.evaluate_with_problem_file('problem2.txt', program)
+    print(result)
+    print(program)
 
 if __name__ == "__main__":
     #GpApp.evolve()
-    main()
+    #main()
+    test()

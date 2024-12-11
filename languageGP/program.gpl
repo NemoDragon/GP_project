@@ -1,22 +1,10 @@
-d = "abcd";
-
-x = [1, 2, 3, 4];
-
-out(x);
-
-out(d);
-
-c = array(5);
-
-b = array(3);
-
-
+a = in();
+b = size(a);
 i = 0;
-loop(i < 5) {
-    c[i] = i * 2;
+loop(i<b/2) {
+    temp = a[i];
+    a[i] = a[b - i - 1];
+    a[b - i - 1] = temp;
     i = i + 1;
 }
-
-a = 5;
-out(c[1]);
 out(a);
