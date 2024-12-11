@@ -44,6 +44,15 @@ class GPlanguageListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by GPlanguageParser#array_initialization.
+    def enterArray_initialization(self, ctx:GPlanguageParser.Array_initializationContext):
+        pass
+
+    # Exit a parse tree produced by GPlanguageParser#array_initialization.
+    def exitArray_initialization(self, ctx:GPlanguageParser.Array_initializationContext):
+        pass
+
+
     # Enter a parse tree produced by GPlanguageParser#assignment.
     def enterAssignment(self, ctx:GPlanguageParser.AssignmentContext):
         pass

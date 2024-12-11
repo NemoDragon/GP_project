@@ -38,8 +38,17 @@ class TreeSerializer:
 
         elif node.node_type == 'array':
             size = node.children[0]
-            program_code.append('[')
+            program_code.append('array(')
             self.visit_node(size, program_code)
+            program_code.append(')')
+
+        elif node.node_type == 'initialized_array':
+            program_code.append('[')
+            size = len(node.children)
+            for i, element in enumerate(node.children):
+                self.visit_node(element, program_code)
+                if i != size - 1:
+                    program_code.append(', ')
             program_code.append(']')
 
         elif node.node_type in ('expression', 'comparison', 'logical_condition'):
@@ -109,6 +118,14 @@ class GPlanguageDeserializerVisitor(ParseTreeVisitor):
         return Node('if', None,
                     [self.visit(ctx.expression()), self.visit(ctx.code_block())])
 
+    # Visit a parse tree produced by GPlanguageParser#array_initialization.
+    def visitArray_initialization(self, ctx: GPlanguageParser.Array_initializationContext):
+        if ctx.STRING_VALUE():
+            array_elements = map(lambda c: ord(c), ctx.STRING_VALUE().getText()[1:-1])
+            elements = list(map(lambda i: Node('int', i), array_elements))
+            return Node('initialized_array', None, elements)
+        return Node('initialized_array', None, self.visitChildren(ctx))
+
     # Visit a parse tree produced by GPlanguageParser#array_create.
     def visitArray_create(self, ctx: GPlanguageParser.Array_createContext):
         return Node('array', None, [self.visit(ctx.arithmetic_expression())])
@@ -118,6 +135,8 @@ class GPlanguageDeserializerVisitor(ParseTreeVisitor):
         variable = Node('variable', ctx.ID().getText())
         if ctx.array_create():
             value = self.visit(ctx.array_create())
+        elif ctx.array_initialization():
+            value = self.visit(ctx.array_initialization())
         else:
             value = self.visit(ctx.expression())
         if ctx.arithmetic_expression():

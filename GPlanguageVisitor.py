@@ -29,6 +29,11 @@ class GPlanguageVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by GPlanguageParser#array_initialization.
+    def visitArray_initialization(self, ctx:GPlanguageParser.Array_initializationContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by GPlanguageParser#assignment.
     def visitAssignment(self, ctx:GPlanguageParser.AssignmentContext):
         return self.visitChildren(ctx)

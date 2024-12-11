@@ -114,6 +114,10 @@ class GplInterpreter:
         size = self.visit_expression(size_expression)
         return [0] * int(size)
 
+    def visit_initialized_array(self, node: Node) -> list:
+        elements = map(lambda child: self.visit_expression(child), node.children)
+        return list(elements)
+
     def visit_expression(self, node: Node) -> int | float | bool | list:
         self.instructions_count += 1
         if node.node_type == 'logical_condition':
@@ -128,6 +132,8 @@ class GplInterpreter:
             return self.visit_array_index(node)
         if node.node_type == 'array':
             return self.visit_array(node)
+        if node.node_type == 'initialized_array':
+            return self.visit_initialized_array(node)
         if node.node_type == 'variable':
             return self.dereference_variable(node.value)
         raise Exception('provided node is not an expression node')
@@ -184,6 +190,14 @@ class GplInterpreter:
             self.visit_statement(statement)
             if self.instructions_count > self.instructions_number_limit:
                 break
+
+    def array_to_string(self, array: list):
+        if not all(isinstance(element, int) for element in array):
+            return ''
+        return ''.join(map(chr, array))
+
+    def string_to_array(self, string: str):
+        return list(map(ord, string))
 
     def execute(self, program: Node) -> tuple[list[float | int], int, int]:
         if program.node_type != 'program':

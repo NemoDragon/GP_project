@@ -5,11 +5,13 @@ LOOP : 'loop' ;
 
 INTEGER_VALUE : [0-9]+ ;
 FLOAT_VALUE : [0-9]+ '.' [0-9]* | '.' [0-9]+ ;
+STRING_VALUE : '"' (~["\\\n\r])* '"' ;
 
 BLOCK_START : '{' ;
 BLOCK_END: '}' ;
 OUT: 'out';
 IN: 'in';
+ARRAY: 'array';
 
 LPAREN : '(' ;
 RPAREN : ')' ;
@@ -32,6 +34,7 @@ OR : 'or' ;
 
 ASSIGN : '=' ;
 SEMI : ';' ;
+COMMA : ',' ;
 
 ID : [a-zA-Z_][a-zA-Z0-9_]* ;
 
@@ -43,9 +46,11 @@ statement : if_statement | assignment SEMI | loop_statement | output_statement |
 
 if_statement : IF LPAREN expression RPAREN code_block;
 
-array_create : LSQUARE arithmetic_expression RSQUARE ;
+array_create : ARRAY LPAREN arithmetic_expression RPAREN ;
 
-assignment : ID (LSQUARE arithmetic_expression RSQUARE)? ASSIGN (expression | array_create);
+array_initialization : LSQUARE (arithmetic_expression? | arithmetic_expression (COMMA arithmetic_expression)*) RSQUARE | STRING_VALUE;
+
+assignment : ID (LSQUARE arithmetic_expression RSQUARE)? ASSIGN (expression | array_create | array_initialization);
 
 loop_statement : LOOP LPAREN expression RPAREN code_block ;
 

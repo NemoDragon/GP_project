@@ -120,7 +120,8 @@ if __name__ == "__main__":
     #serializer.serialize(random_program, 'program.gpl')
     deserializer = TreeDeserializer()
     tree = deserializer.deserialize('program.gpl')
-    #serializer.serialize(tree, 'program_serialized.gpl')
+    print(tree)
+    serializer.serialize(tree, 'program_serialized.gpl')
     #for i in random_program:
     #    print("---------")
     #    print(i)
