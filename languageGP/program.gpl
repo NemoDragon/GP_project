@@ -1,11 +1,22 @@
-count = in();
+d = "abcd";
 
-a = 1;
+x = [1, 2, 3, 4];
+
+out(x);
+
+out(d);
+
+c = array(5);
+
+b = array(3);
+
+
 i = 0;
-loop(i < count) {
+loop(i < 5) {
+    c[i] = i * 2;
     i = i + 1;
-
-    a = a * 2;
 }
 
+a = 5;
+out(c[1]);
 out(a);

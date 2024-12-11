@@ -35,6 +35,24 @@ class GPlanguageListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by GPlanguageParser#array_create.
+    def enterArray_create(self, ctx:GPlanguageParser.Array_createContext):
+        pass
+
+    # Exit a parse tree produced by GPlanguageParser#array_create.
+    def exitArray_create(self, ctx:GPlanguageParser.Array_createContext):
+        pass
+
+
+    # Enter a parse tree produced by GPlanguageParser#array_initialization.
+    def enterArray_initialization(self, ctx:GPlanguageParser.Array_initializationContext):
+        pass
+
+    # Exit a parse tree produced by GPlanguageParser#array_initialization.
+    def exitArray_initialization(self, ctx:GPlanguageParser.Array_initializationContext):
+        pass
+
+
     # Enter a parse tree produced by GPlanguageParser#assignment.
     def enterAssignment(self, ctx:GPlanguageParser.AssignmentContext):
         pass
@@ -113,6 +131,15 @@ class GPlanguageListener(ParseTreeListener):
 
     # Exit a parse tree produced by GPlanguageParser#arithmetic_expression.
     def exitArithmetic_expression(self, ctx:GPlanguageParser.Arithmetic_expressionContext):
+        pass
+
+
+    # Enter a parse tree produced by GPlanguageParser#array_index.
+    def enterArray_index(self, ctx:GPlanguageParser.Array_indexContext):
+        pass
+
+    # Exit a parse tree produced by GPlanguageParser#array_index.
+    def exitArray_index(self, ctx:GPlanguageParser.Array_indexContext):
         pass
 
 
