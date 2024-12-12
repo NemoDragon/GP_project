@@ -133,3 +133,10 @@ if __name__ == "__main__":
     output_vector, program_inputs_count, instructions_count = interpreter.execute(tree)
     print(f'instructions count: {instructions_count}, program used {program_inputs_count} inputs')
     print(output_vector)
+    interpreter = GplInterpreter(input_vector=[1])
+    fibonacci = deserializer.deserialize('fibonacci.gpl')
+    print(fibonacci)
+    output_vector, program_inputs_count, instructions_count = interpreter.execute(fibonacci)
+    print(f'instructions count: {instructions_count}, program used {program_inputs_count} inputs')
+    print(output_vector)
+

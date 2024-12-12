@@ -2,6 +2,7 @@ import re
 import ast
 from generator import RandomGPlanguageGenerator
 from languageGP.interpreter import GplInterpreter
+from languageGP.serialization import TreeDeserializer
 from node import Node
 import random
 import copy
@@ -174,9 +175,15 @@ def main():
         print(result_2)
         print(p)
         print("============")
+    gp = GpApp()
+    deserializer = TreeDeserializer()
+    program = deserializer.deserialize('fibonacci.gpl')
+    result = gp.evaluate_with_problem_file('fibonacci.txt', program)
+    print(result)
+    print(program)
 
 
 
 if __name__ == "__main__":
-    #GpApp.evolve()
+    GpApp.evolve()
     main()
