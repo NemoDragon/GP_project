@@ -1,22 +1,21 @@
-d = "abcd";
+n = in();
 
-x = [1, 2, 3, 4];
+x = 1;
+y = 1;
 
-out(x);
-
-out(d);
-
-c = array(5);
-
-b = array(3);
-
-
-i = 0;
-loop(i < 5) {
-    c[i] = i * 2;
-    i = i + 1;
+if(n > 0) {
+    out(1);
 }
 
-a = 5;
-out(c[1]);
-out(a);
+if(n >= 2) {
+    out(1);
+}
+
+i = 2;
+loop(i<n) {
+    temp = x + y;
+    out(temp);
+    x = y;
+    y = temp;
+    i = i + 1;
+}

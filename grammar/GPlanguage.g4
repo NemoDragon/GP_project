@@ -12,6 +12,7 @@ BLOCK_END: '}' ;
 OUT: 'out';
 IN: 'in';
 ARRAY: 'array';
+SIZE: 'size';
 
 LPAREN : '(' ;
 RPAREN : ')' ;
@@ -50,7 +51,9 @@ array_create : ARRAY LPAREN arithmetic_expression RPAREN ;
 
 array_initialization : LSQUARE (arithmetic_expression? | arithmetic_expression (COMMA arithmetic_expression)*) RSQUARE | STRING_VALUE;
 
-assignment : ID (LSQUARE arithmetic_expression RSQUARE)? ASSIGN (expression | array_create | array_initialization);
+array_size : SIZE LPAREN variable_reference RPAREN ;
+
+assignment : ID (LSQUARE arithmetic_expression RSQUARE)? ASSIGN (expression | array_create | array_initialization | array_size);
 
 loop_statement : LOOP LPAREN expression RPAREN code_block ;
 

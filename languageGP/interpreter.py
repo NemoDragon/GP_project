@@ -1,3 +1,5 @@
+import copy
+
 from node import Node
 from typing import Dict
 
@@ -23,17 +25,21 @@ class GplInterpreter:
             if got.node_type != expected:
                 raise Exception(f'tried to visit {expected} but got incorrect node')
 
-    def dereference_variable(self, variable_name: str) -> int | float | bool | list:
+    def dereference_variable(self, variable_name: str, copy_list=True) -> int | float | bool | list:
         value = self.variables.get(variable_name)
         if value is None:
             return 0
+        if isinstance(value, list) and copy_list:
+            return copy.deepcopy(value)
         return value
 
     def array_cell_value(self, variable_name: str, index: int) -> int | float | bool | list:
-        array = self.dereference_variable(variable_name)
+        array = self.dereference_variable(variable_name, copy_list=False)
         if not isinstance(array, list):
             return 0
         if 0 <= index < len(array):
+            if isinstance(array[index], list):
+                return copy.deepcopy(array[index])
             return array[index]
         return 0
 
@@ -41,7 +47,7 @@ class GplInterpreter:
         self.variables[variable_name] = value
 
     def assign_array_cell(self, variable_name: str, index: int, value: int | float | bool):
-        variable = self.dereference_variable(variable_name)
+        variable = self.dereference_variable(variable_name, copy_list=False)
         if not isinstance(variable, list):
             # If program tries to use index operator on
             # non array variable assign 0 to this variable
@@ -118,6 +124,12 @@ class GplInterpreter:
         elements = map(lambda child: self.visit_expression(child), node.children)
         return list(elements)
 
+    def visit_array_size(self, node: Node) -> int:
+        array = self.visit_expression(node.children[0])
+        if not isinstance(array, list):
+            return 0
+        return len(array)
+
     def visit_expression(self, node: Node) -> int | float | bool | list:
         self.instructions_count += 1
         if node.node_type == 'logical_condition':
@@ -134,6 +146,8 @@ class GplInterpreter:
             return self.visit_array(node)
         if node.node_type == 'initialized_array':
             return self.visit_initialized_array(node)
+        if node.node_type == 'array_size':
+            return self.visit_array_size(node)
         if node.node_type == 'variable':
             return self.dereference_variable(node.value)
         raise Exception('provided node is not an expression node')
@@ -191,12 +205,14 @@ class GplInterpreter:
             if self.instructions_count > self.instructions_number_limit:
                 break
 
-    def array_to_string(self, array: list):
+    @staticmethod
+    def array_to_string(array: list):
         if not all(isinstance(element, int) for element in array):
             return ''
-        return ''.join(map(chr, array))
+        return ''.join(map(lambda i: chr(i % 256), array))
 
-    def string_to_array(self, string: str):
+    @staticmethod
+    def string_to_array(string: str):
         return list(map(ord, string))
 
     def execute(self, program: Node) -> tuple[list[float | int], int, int]:

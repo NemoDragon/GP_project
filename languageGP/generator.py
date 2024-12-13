@@ -129,7 +129,7 @@ if __name__ == "__main__":
     print('==========================')
     print(tree)
     print('==========================')
-    interpreter = GplInterpreter(input_vector=[3, 20])
+    interpreter = GplInterpreter(input_vector=[6])
     output_vector, program_inputs_count, instructions_count = interpreter.execute(tree)
     print(f'instructions count: {instructions_count}, program used {program_inputs_count} inputs')
     print(output_vector)
