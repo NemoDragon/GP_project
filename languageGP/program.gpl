@@ -1,10 +1,21 @@
-a = in();
-b = size(a);
-i = 0;
-loop(i<b/2) {
-    temp = a[i];
-    a[i] = a[b - i - 1];
-    a[b - i - 1] = temp;
+n = in();
+
+x = 1;
+y = 1;
+
+if(n > 0) {
+    out(1);
+}
+
+if(n >= 2) {
+    out(1);
+}
+
+i = 2;
+loop(i<n) {
+    temp = x + y;
+    out(temp);
+    x = y;
+    y = temp;
     i = i + 1;
 }
-out(a);
