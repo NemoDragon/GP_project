@@ -103,7 +103,8 @@ class GpApp:
         expected_output = GpApp.convert_strings_to_arrays(expected_output)
         value = 0
         interpreter = GplInterpreter(input_vector=expected_input)
-        program_output, program_inputs_count, instructions_count = interpreter.execute(program)
+        program_output = interpreter.execute(program)
+        program_inputs_count = interpreter.used_inputs
         input_number_error = abs(len(expected_input) - program_inputs_count)
         output_number_error = abs(len(expected_output) - len(program_output))
         value += input_number_error * 100
@@ -216,4 +217,5 @@ def test():
 
 if __name__ == "__main__":
     #GpApp.evolve()
-    main()
+    #main()
+    test()

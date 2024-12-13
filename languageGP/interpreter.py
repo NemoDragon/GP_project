@@ -8,14 +8,15 @@ class GplInterpreter:
     def __init__(self, input_vector: list[float | int]):
         self.variables: Dict[str, int | float | bool | list] = {}
         self.input_vector = input_vector
-        self.input_index = -1
+        self.used_inputs = 0
         self.output_vector = []
         self.instructions_count = 0
         self.instructions_number_limit = 10000  # adjust before starting execution
+        self.active_loops = 0
 
     def next_input_value(self):
-        self.input_index += 1
-        return self.input_vector[self.input_index] if self.input_index < len(self.input_vector) else 0
+        self.used_inputs += 1
+        return self.input_vector[self.used_inputs - 1] if self.used_inputs <= len(self.input_vector) else 0
 
     def check_node_type(self, expected: str | tuple, got: Node):
         if type(expected) == tuple:
@@ -177,11 +178,13 @@ class GplInterpreter:
         elif statement.node_type == 'loop':
             condition, block = statement.children
             condition_result = self.visit_expression(condition)
+            self.active_loops += 1
             while condition_result:
                 self.visit_code_block(block)
                 if self.instructions_count > self.instructions_number_limit:
                     break
                 condition_result = self.visit_expression(condition)
+            self.active_loops -= 1
 
         elif statement.node_type == 'in':
             input_value = self.next_input_value()
@@ -222,4 +225,4 @@ class GplInterpreter:
         self.visit_code_block(program)
 
         # output vector, number of inputs used by program, instructions count
-        return self.output_vector, self.input_index + 1, self.instructions_count
+        return self.output_vector
