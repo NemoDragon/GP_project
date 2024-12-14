@@ -1,7 +1,7 @@
 import copy
-
 from node import Node
 from typing import Dict
+from warnings import warn
 
 
 class GplInterpreter:
@@ -219,6 +219,9 @@ class GplInterpreter:
         return list(map(ord, string))
 
     def execute(self, program: Node) -> tuple[list[float | int], int, int]:
+        if self.instructions_count > 0:
+            warn("you are executing another program with the same interpreter instance")
+
         if program.node_type != 'program':
             raise Exception('provided node is not a root program node')
 
