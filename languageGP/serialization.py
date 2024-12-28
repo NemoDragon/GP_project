@@ -51,6 +51,12 @@ class TreeSerializer:
                     program_code.append(', ')
             program_code.append(']')
 
+        elif node.node_type == 'array_size':
+            variable = node.children[0]
+            program_code.append('size(')
+            self.visit_node(variable, program_code)
+            program_code.append(')')
+
         elif node.node_type in ('expression', 'comparison', 'logical_condition'):
             left, right = node.children
             op = node.value
@@ -126,6 +132,10 @@ class GPlanguageDeserializerVisitor(ParseTreeVisitor):
             return Node('initialized_array', None, elements)
         return Node('initialized_array', None, self.visitChildren(ctx))
 
+    # Visit a parse tree produced by GPlanguageParser#array_size.
+    def visitArray_size(self, ctx: GPlanguageParser.Array_sizeContext):
+        return Node('array_size', None, self.visitChildren(ctx))
+
     # Visit a parse tree produced by GPlanguageParser#array_create.
     def visitArray_create(self, ctx: GPlanguageParser.Array_createContext):
         return Node('array', None, [self.visit(ctx.arithmetic_expression())])
@@ -137,6 +147,8 @@ class GPlanguageDeserializerVisitor(ParseTreeVisitor):
             value = self.visit(ctx.array_create())
         elif ctx.array_initialization():
             value = self.visit(ctx.array_initialization())
+        elif ctx.array_size():
+            value = self.visit(ctx.array_size())
         else:
             value = self.visit(ctx.expression())
         if ctx.arithmetic_expression():

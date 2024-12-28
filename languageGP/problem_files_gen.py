@@ -7,7 +7,7 @@ def create_problem_file(program: Node, inputs: list[list[int | float]]):
     outputs = []
     for input_vector in inputs:
         interpreter = GplInterpreter(input_vector=input_vector)
-        output_vector = interpreter.execute(program)[0]
+        output_vector = interpreter.execute(program)
         outputs.append(output_vector)
     with open('problem.txt', 'w') as file:
         for i in range(len(outputs)):

@@ -1,19 +1,22 @@
+import copy
 from node import Node
 from typing import Dict
+from warnings import warn
 
 
 class GplInterpreter:
     def __init__(self, input_vector: list[float | int]):
         self.variables: Dict[str, int | float | bool | list] = {}
         self.input_vector = input_vector
-        self.input_index = -1
+        self.used_inputs = 0
         self.output_vector = []
         self.instructions_count = 0
         self.instructions_number_limit = 10000  # adjust before starting execution
+        self.active_loops = 0
 
     def next_input_value(self):
-        self.input_index += 1
-        return self.input_vector[self.input_index] if self.input_index < len(self.input_vector) else 0
+        self.used_inputs += 1
+        return self.input_vector[self.used_inputs - 1] if self.used_inputs <= len(self.input_vector) else 0
 
     def check_node_type(self, expected: str | tuple, got: Node):
         if type(expected) == tuple:
@@ -23,17 +26,21 @@ class GplInterpreter:
             if got.node_type != expected:
                 raise Exception(f'tried to visit {expected} but got incorrect node')
 
-    def dereference_variable(self, variable_name: str) -> int | float | bool | list:
+    def dereference_variable(self, variable_name: str, copy_list=True) -> int | float | bool | list:
         value = self.variables.get(variable_name)
         if value is None:
             return 0
+        if isinstance(value, list) and copy_list:
+            return copy.deepcopy(value)
         return value
 
     def array_cell_value(self, variable_name: str, index: int) -> int | float | bool | list:
-        array = self.dereference_variable(variable_name)
+        array = self.dereference_variable(variable_name, copy_list=False)
         if not isinstance(array, list):
             return 0
         if 0 <= index < len(array):
+            if isinstance(array[index], list):
+                return copy.deepcopy(array[index])
             return array[index]
         return 0
 
@@ -41,7 +48,7 @@ class GplInterpreter:
         self.variables[variable_name] = value
 
     def assign_array_cell(self, variable_name: str, index: int, value: int | float | bool):
-        variable = self.dereference_variable(variable_name)
+        variable = self.dereference_variable(variable_name, copy_list=False)
         if not isinstance(variable, list):
             # If program tries to use index operator on
             # non array variable assign 0 to this variable
@@ -118,6 +125,12 @@ class GplInterpreter:
         elements = map(lambda child: self.visit_expression(child), node.children)
         return list(elements)
 
+    def visit_array_size(self, node: Node) -> int:
+        array = self.visit_expression(node.children[0])
+        if not isinstance(array, list):
+            return 0
+        return len(array)
+
     def visit_expression(self, node: Node) -> int | float | bool | list:
         self.instructions_count += 1
         if node.node_type == 'logical_condition':
@@ -134,6 +147,8 @@ class GplInterpreter:
             return self.visit_array(node)
         if node.node_type == 'initialized_array':
             return self.visit_initialized_array(node)
+        if node.node_type == 'array_size':
+            return self.visit_array_size(node)
         if node.node_type == 'variable':
             return self.dereference_variable(node.value)
         raise Exception('provided node is not an expression node')
@@ -163,11 +178,13 @@ class GplInterpreter:
         elif statement.node_type == 'loop':
             condition, block = statement.children
             condition_result = self.visit_expression(condition)
+            self.active_loops += 1
             while condition_result:
                 self.visit_code_block(block)
                 if self.instructions_count > self.instructions_number_limit:
                     break
                 condition_result = self.visit_expression(condition)
+            self.active_loops -= 1
 
         elif statement.node_type == 'in':
             input_value = self.next_input_value()
@@ -191,19 +208,24 @@ class GplInterpreter:
             if self.instructions_count > self.instructions_number_limit:
                 break
 
-    def array_to_string(self, array: list):
+    @staticmethod
+    def array_to_string(array: list):
         if not all(isinstance(element, int) for element in array):
             return ''
-        return ''.join(map(chr, array))
+        return ''.join(map(lambda i: chr(i % 256), array))
 
-    def string_to_array(self, string: str):
+    @staticmethod
+    def string_to_array(string: str):
         return list(map(ord, string))
 
     def execute(self, program: Node) -> tuple[list[float | int], int, int]:
+        if self.instructions_count > 0:
+            warn("you are executing another program with the same interpreter instance")
+
         if program.node_type != 'program':
             raise Exception('provided node is not a root program node')
 
         self.visit_code_block(program)
 
         # output vector, number of inputs used by program, instructions count
-        return self.output_vector, self.input_index + 1, self.instructions_count
+        return self.output_vector
