@@ -1,5 +1,8 @@
 import re
 import ast
+
+from poetry.console.commands import self
+
 from generator import RandomGPlanguageGenerator
 from languageGP.interpreter import GplInterpreter
 from languageGP.serialization import TreeDeserializer
@@ -9,10 +12,20 @@ import copy
 
 
 class GpApp:
-    def __init__(self, pop_size=100, crossover_prob=0.05, mutation_prob=0.05):
+    def __init__(self, pop_size=100,
+                 crossover_prob=0.05,
+                 mutation_prob=0.02,
+                 t_size=5,
+                 generations=100,
+                 depth=5,
+                 filename='problem.txt'):
         self.pop_size = pop_size
         self.crossover_prob = crossover_prob
         self.mutation_prob = mutation_prob
+        self.t_size = t_size
+        self.generations = generations
+        self.depth = depth
+        self.filename = filename
 
     pop = []
 
@@ -25,22 +38,23 @@ class GpApp:
                     if n.node_type in ['if', 'loop']:
                         GpApp.get_all_mutable_nodes(n.children[1], elements)
 
-    @staticmethod
     # mutation - deletes one node of a program and generates new program in the place of the deleted node
-    def mutate(parent):
+    def mutate(self, parent):
         parent1 = copy.deepcopy(parent)
         parent_statements = []
         GpApp.get_all_mutable_nodes(parent1, parent_statements)
-        prog_size = random.randint(1, 4)
-        block_size = random.randint(1, 3)
-        depth = random.randint(2, 7)
-        generator = RandomGPlanguageGenerator(prog_size, block_size, depth)
-        generated_node = generator.generate_program()
-        node, node_parent = random.choice(parent_statements)
-        node_idx = node_parent.children.index(node)
-        node_parent.children[node_idx] = generated_node.children[0]
-        print("zmieniono:\n" + str(node))
-        print("dodano:\n" + str(generated_node.children[0]))
+        for i in range(len(parent_statements)):
+            if random.random() < self.mutation_prob:
+                prog_size = random.randint(1, 4)
+                block_size = random.randint(1, 3)
+                depth = random.randint(2, 7)
+                generator = RandomGPlanguageGenerator(prog_size, block_size, depth)
+                generated_node = generator.generate_program()
+                node, node_parent = parent_statements[i]
+                node_idx = node_parent.children.index(node)
+                node_parent.children[node_idx] = generated_node.children[0]
+                # print("zmieniono:\n" + str(node))
+                # print("dodano:\n" + str(generated_node.children[0]))
         return parent1
 
     @staticmethod
@@ -59,10 +73,9 @@ class GpApp:
         buffer = node_parent1.children[node_idx1]
         node_parent1.children[node_idx1] = node_parent2.children[node_idx2]
         node_parent2.children[node_idx2] = buffer
-        print("przeniesiono z 1 do 2:\n" + str(node1))
-        print("przeniesiono z 2 do 1:\n" + str(node2))
+        # print("przeniesiono z 1 do 2:\n" + str(node1))
+        # print("przeniesiono z 2 do 1:\n" + str(node2))
         return parent11, parent22
-
 
     @staticmethod
     def output_expression(node):
@@ -85,8 +98,6 @@ class GpApp:
                 output += GpApp.output_expression(parent) if output == "" else "_" + GpApp.output_expression(parent)
         return output
 
-
-
     @staticmethod
     # evaluate - calculates the fitness value of the program, better programs have less fitness value
     def evaluate(program, expected_input: list[int | float], expected_output: list[int | float]) -> float:
@@ -104,19 +115,29 @@ class GpApp:
                 value += expected_output[i]
         return value
 
-    # tournament - chooses randomly 2 / 5 / 10 programs from population and checks their fitness, programs with
-    # the highest fitness value in the tournament wins, deletes programs with lower fitness value
-    # until there is 50% of them left
-    def tournament(self, t_size=2) -> None:
-        size = self.pop_size // 2
-        while len(self.pop) > size:
-            chosen_programs = random.sample(self.pop, k=t_size)
-            evaluations = [(x, self.evaluate(x, [14], [0])) for x in chosen_programs]
-            min_value = min([e[1] for e in evaluations])
-            for e in evaluations:
-                print(e)
-                if e[1] != min_value:
-                    self.pop.remove(e[0])
+    # tournament - chooses randomly [t_size] programs from population and checks their fitness values with random
+    # chosen program from population, program with the lowest fitness value in the tournament is returned
+    def tournament(self, t_size=2) -> Node:
+        chosen_programs = random.sample(self.pop, k=t_size)
+        best_program = random.choice(self.pop)
+        best_fitness = self.evaluate_with_problem_file(self.filename, best_program)
+        for x in chosen_programs:
+            x_fitness = self.evaluate_with_problem_file(self.filename, x)
+            if x_fitness < best_fitness:
+                best_fitness = x_fitness
+                best_program = x
+        return best_program
+
+    def negative_tournament(self, t_size=2) -> Node:
+        chosen_programs = random.sample(self.pop, k=t_size)
+        worst_program = random.choice(self.pop)
+        worst_fitness = self.evaluate_with_problem_file(self.filename, worst_program)
+        for x in chosen_programs:
+            x_fitness = self.evaluate_with_problem_file(self.filename, x)
+            if x_fitness > worst_fitness:
+                worst_fitness = x_fitness
+                worst_program = x
+        return worst_program
 
     # create_random_population - generates population of programs and inserts them into an array
     def create_random_population(self) -> None:
@@ -128,29 +149,45 @@ class GpApp:
             prog = generator.generate_program()
             self.pop.append(prog)
 
-    @staticmethod
+    def print_parameters(self) -> None:
+        print("GP: programs")
+        print("POPSIZE=" + str(self.pop_size))
+        print("TSIZE=" + str(self.t_size))
+        print("CROSSOVER_PROB=" + str(self.crossover_prob))
+        print("MUTATION_PROB=" + str(self.mutation_prob))
+        print("DEPTH=" + str(self.depth))
+        print("GENERATIONS=" + str(self.generations))
+        print("FILENAME=" + str(self.filename))
+
+    def stats(self, gen: int) -> None:
+        best_individual = self.pop[0]
+        best_fitness = self.evaluate_with_problem_file(self.filename, self.pop[0])
+        fitness_sum = 0
+        for x in self.pop:
+            x_fitness = self.evaluate_with_problem_file(self.filename, x)
+            fitness_sum += x_fitness
+            if x_fitness < best_fitness:
+                best_individual = x
+                best_fitness = x_fitness
+        print("Generation=" + str(gen) + " Avg Fitness=" + str(fitness_sum / self.pop_size) +
+              " Best Fitness=" + str(best_fitness) + " Best Individual=\n" + str(best_individual))
+
     # evolve - [now it is a test function] later it will manage the process of the program evolution
-    def evolve():
-        r = RandomGPlanguageGenerator(3, 2, 2)
-        generated_program = r.generate_program()
-        mutated_program = GpApp.mutate(generated_program)
-        print("original program")
-        print(generated_program)
-        print("mutated program")
-        print(mutated_program)
-        prog1 = r.generate_program()
-        prog2 = r.generate_program()
-        print("prog1")
-        print(prog1)
-        print("prog2")
-        print(prog2)
-        cross1, cross2 = GpApp.crossover(prog1, prog2)
-        print("cross1")
-        print(cross1)
-        print("cross2")
-        print(cross2)
-        #ev = GpApp.evaluate("out(14)", 14)
-        #print(ev)
+    def evolve(self) -> None:
+        self.print_parameters()
+        self.stats(0)
+        for gen in range(1, self.generations):
+            for i in range(self.pop_size):
+                if random.random() < self.crossover_prob:
+                    parent1, parent2 = self.tournament(self.t_size), self.tournament(self.t_size)
+                    new_individual = self.crossover(parent1, parent2)[0]
+                else:
+                    parent = self.tournament(self.t_size)
+                    new_individual = self.mutate(parent)
+                offspring = self.negative_tournament(self.t_size)
+                self.pop.remove(offspring)
+                self.pop.append(new_individual)
+            self.stats(gen)
 
     def evaluate_with_problem_file(self, file_name: str, program):
         with open(file_name, 'r') as f:
@@ -162,28 +199,17 @@ class GpApp:
         return value
 
 
-
-
-
 def main():
-    gp = GpApp()
+    gp = GpApp(pop_size=1000,
+               crossover_prob=0.05,
+               mutation_prob=0.05,
+               t_size=5,
+               generations=200,
+               depth=7,
+               filename='problem.txt')
     gp.create_random_population()
-    #print(gp.pop)
-    #gp.tournament(5)
-    for p in gp.pop:
-        result_2 = gp.evaluate_with_problem_file('problem.txt', p)
-        print(result_2)
-        print(p)
-        print("============")
-    gp = GpApp()
-    deserializer = TreeDeserializer()
-    program = deserializer.deserialize('fibonacci.gpl')
-    result = gp.evaluate_with_problem_file('fibonacci.txt', program)
-    print(result)
-    print(program)
-
+    gp.evolve()
 
 
 if __name__ == "__main__":
-    GpApp.evolve()
     main()
