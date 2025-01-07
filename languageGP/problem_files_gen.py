@@ -19,6 +19,9 @@ def main():
     deserializer = TreeDeserializer()
     tree = deserializer.deserialize('program.gpl')
     create_problem_file(tree, input_val)
+    #for i in range(0, 10):
+    #    for j in range(0, 10):  # j zawsze większe niż i
+    #        print(f"[{i}, {j}] [{j if j > i else i}]")
 
 
 if __name__ == '__main__':
