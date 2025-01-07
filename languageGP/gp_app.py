@@ -192,7 +192,25 @@ class GpApp:
     # 1.3.A Program powinien odczytać dwie pierwsze liczy z wejścia i zwrócić na wyjściu (jedynie) większą z nich.
     # Na wejściu mogą być tylko całkowite liczby dodatnie w zakresie [0,9]
     def evaluate_3a(program, expected_input: list[int | float], expected_output: list[int | float]) -> float:
-        pass
+        value = 0
+        interpreter = GplInterpreter(input_vector=expected_input)
+        program_output = interpreter.execute(program)
+        program_inputs_count = interpreter.used_inputs
+        input_number_error = abs(len(expected_input) - program_inputs_count)
+        value += input_number_error * 100
+        output_number_error = abs(len(expected_output) - len(program_output))
+        value += output_number_error * 100
+        if len(program_output) == 0:
+            value += 1000
+        elif len(program_output) == 2 and expected_output[0] == program_output[0]:
+            value += 0
+        else:
+            for i in range(len(program_output)):
+                if i == 0:
+                    value += abs(program_output[i] - expected_output[i])
+                else:
+                    value += abs(program_output[i])
+        return value
 
     # tournament - chooses randomly [t_size] programs from population and checks their fitness values with random
     # chosen program from population, program with the lowest fitness value in the tournament is returned
@@ -276,6 +294,7 @@ class GpApp:
             inputs, outputs = ast.literal_eval(d.split("] [")[0] + "]"), ast.literal_eval("[" + d.split("] [")[1])
             # value += self.evaluate(program, inputs, outputs)
             value += self.evaluate_1abc(program, inputs, outputs)
+            value += self.evaluate_3a(program, inputs, outputs)
         return value
 
 
@@ -286,7 +305,7 @@ def main():
                t_size=5,
                generations=200,
                depth=7,
-               filename='test_problems/problem.txt')
+               filename='test_problems/problem_3a.txt')
     gp.create_random_population()
     gp.evolve()
 
