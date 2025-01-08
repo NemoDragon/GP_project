@@ -2,7 +2,7 @@ import re
 import ast
 
 from poetry.console.commands import self
-
+from openpyxl import Workbook
 from generator import RandomGPlanguageGenerator
 from languageGP.interpreter import GplInterpreter
 from languageGP.serialization import TreeDeserializer
@@ -26,6 +26,9 @@ class GpApp:
         self.generations = generations
         self.depth = depth
         self.filename = filename
+        self.best_fitness = []
+        self.avg_fitness = []
+        self.done_generations = []
 
     pop = []
 
@@ -160,7 +163,7 @@ class GpApp:
                     value += abs(program_output[i] - expected_output[i])
                 else:
                     value += abs(program_output[i])
-            return value
+        return value
 
     @staticmethod
     # 1.1.F Program powinien wygenerować na wyjściu liczbę jako jedyną liczbę
@@ -256,7 +259,7 @@ class GpApp:
         print("GENERATIONS=" + str(self.generations))
         print("FILENAME=" + str(self.filename))
 
-    def stats(self, gen: int) -> None:
+    def stats(self, gen: int) -> float:
         best_individual = self.pop[0]
         best_fitness = self.evaluate_with_problem_file(self.filename, self.pop[0])
         fitness_sum = 0
@@ -266,10 +269,33 @@ class GpApp:
             if x_fitness < best_fitness:
                 best_individual = x
                 best_fitness = x_fitness
-        print("Generation=" + str(gen) + " Avg Fitness=" + str(fitness_sum / self.pop_size) +
-              " Best Fitness=" + str(best_fitness) + " Best Individual=\n" + str(best_individual))
+        self.best_fitness.append(best_fitness)
+        self.avg_fitness.append(fitness_sum / self.pop_size)
+        self.done_generations.append(gen)
+        print(" Best Individual=\n" + str(best_individual) +
+              "Generation=" + str(gen) +
+              " Avg Fitness=" + str(fitness_sum / self.pop_size) +
+              " Best Fitness=" + str(best_fitness))
+        return best_fitness
 
-    # evolve - [now it is a test function] later it will manage the process of the program evolution
+    def save_data_to_excel(self, filename="data.xlsx"):
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "data.xlsx"
+
+        # Zapisanie liczb do wierszy
+        for i, gen in enumerate(self.done_generations, start=1):
+            ws.cell(row=i, column=1, value=gen)
+        for i, avg in enumerate(self.avg_fitness, start=1):
+            ws.cell(row=i, column=2, value=avg)
+        for i, best in enumerate(self.best_fitness, start=1):
+            ws.cell(row=i, column=3, value=best)
+
+        # Zapisanie pliku
+        wb.save(filename)
+        print(f"Saved to file: {filename}")
+
+    # evolve
     def evolve(self) -> None:
         self.print_parameters()
         self.stats(0)
@@ -284,7 +310,13 @@ class GpApp:
                 offspring = self.negative_tournament(self.t_size)
                 self.pop.remove(offspring)
                 self.pop.append(new_individual)
-            self.stats(gen)
+            best_f = self.stats(gen)
+            if best_f <= 0.001:
+                self.save_data_to_excel()
+                print('PROBLEM SOLVED')
+                return
+        self.save_data_to_excel()
+        print('PROBLEM NOT SOLVED')
 
     def evaluate_with_problem_file(self, file_name: str, program):
         with open(file_name, 'r') as f:
@@ -293,8 +325,8 @@ class GpApp:
         for d in data:
             inputs, outputs = ast.literal_eval(d.split("] [")[0] + "]"), ast.literal_eval("[" + d.split("] [")[1])
             # value += self.evaluate(program, inputs, outputs)
-            value += self.evaluate_1abc(program, inputs, outputs)
-            value += self.evaluate_3a(program, inputs, outputs)
+            # value += self.evaluate_1abc(program, inputs, outputs)
+            value += self.evaluate_1de(program, inputs, outputs)
         return value
 
 
@@ -305,7 +337,7 @@ def main():
                t_size=5,
                generations=200,
                depth=7,
-               filename='test_problems/problem_3a.txt')
+               filename='test_problems/problem_1be.txt')
     gp.create_random_population()
     gp.evolve()
 

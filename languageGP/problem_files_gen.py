@@ -1,3 +1,5 @@
+import random
+
 from languageGP.serialization import TreeDeserializer
 from node import Node
 from interpreter import GplInterpreter
@@ -19,9 +21,11 @@ def main():
     deserializer = TreeDeserializer()
     tree = deserializer.deserialize('program.gpl')
     create_problem_file(tree, input_val)
-    #for i in range(0, 10):
-    #    for j in range(0, 10):  # j zawsze większe niż i
-    #        print(f"[{i}, {j}] [{j if j > i else i}]")
+    for i in range(100):
+        b = random.randint(0, 99)
+        a = [b if i == 0 else random.randint(-99, 100) for i in range(b + 1)]
+        s = str(a)
+        print(f"{s} [{0 if len(a[1:]) == 0 else round(sum(a[1:]) / len(a[1:]))}]")
 
 
 if __name__ == '__main__':
