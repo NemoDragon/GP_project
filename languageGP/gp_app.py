@@ -344,7 +344,7 @@ def main():
                t_size=5,
                generations=100,
                depth=7,
-               filename='test_problems/problem_4b.txt')
+               filename='test_problems/problem_2e.txt')
     gp.create_random_population()
     gp.evolve()
 
