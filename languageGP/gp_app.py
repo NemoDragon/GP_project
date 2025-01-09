@@ -1,7 +1,5 @@
-import re
 import ast
-
-from poetry.console.commands import self
+import matplotlib.pyplot as plt
 from openpyxl import Workbook
 from generator import RandomGPlanguageGenerator
 from languageGP.interpreter import GplInterpreter
@@ -274,6 +272,7 @@ class GpApp:
         self.avg_fitness.append(fitness_sum / self.pop_size)
         self.done_generations.append(gen)
         self.best_indiv = best_individual
+        print(self.pop)
         print(" Best Individual=\n" + str(best_individual) +
               "Generation=" + str(gen) +
               " Avg Fitness=" + str(fitness_sum / self.pop_size) +
@@ -302,6 +301,15 @@ class GpApp:
         wb.save(filename)
         print(f"Saved to file: {filename}")
 
+    def plot_data(self):
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        ax.plot(self.done_generations, self.avg_fitness)
+        ax.plot(self.done_generations, self.best_fitness)
+        ax.set_xlabel('generations')
+        ax.set_ylabel('fitness')
+        plt.show()
+
     # evolve
     def evolve(self) -> None:
         self.print_parameters()
@@ -320,9 +328,11 @@ class GpApp:
             best_f = self.stats(gen)
             if best_f <= 0.001:
                 self.save_data_to_excel(self.filename.replace(".txt", '.xlsx'))
+                self.plot_data()
                 print('PROBLEM SOLVED')
                 return
         self.save_data_to_excel(self.filename.replace(".txt", '.xlsx'))
+        self.plot_data()
         print('PROBLEM NOT SOLVED')
 
     def evaluate_with_problem_file(self, file_name: str, program):
@@ -344,7 +354,7 @@ def main():
                t_size=5,
                generations=100,
                depth=7,
-               filename='test_problems/problem_2e.txt')
+               filename='test_problems/problem_1adf.txt')
     gp.create_random_population()
     gp.evolve()
 
