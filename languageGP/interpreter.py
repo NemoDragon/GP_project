@@ -1,4 +1,6 @@
 import copy
+
+from languageGP.serialization import TreeDeserializer
 from node import Node
 from typing import Dict
 from warnings import warn
@@ -229,3 +231,11 @@ class GplInterpreter:
 
         # output vector, number of inputs used by program, instructions count
         return self.output_vector
+
+
+if __name__ == '__main__':
+    interpreter = GplInterpreter([])
+    deserializer = TreeDeserializer()
+    program = deserializer.deserialize('test_problems/problem_1be.gpl')
+    output = interpreter.execute(program)
+    print(output)

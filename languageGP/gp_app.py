@@ -5,7 +5,7 @@ from poetry.console.commands import self
 from openpyxl import Workbook
 from generator import RandomGPlanguageGenerator
 from languageGP.interpreter import GplInterpreter
-from languageGP.serialization import TreeDeserializer
+from languageGP.serialization import TreeDeserializer, TreeSerializer
 from node import Node
 import random
 import copy
@@ -29,6 +29,7 @@ class GpApp:
         self.best_fitness = []
         self.avg_fitness = []
         self.done_generations = []
+        self.best_indiv = None
 
     pop = []
 
@@ -272,6 +273,7 @@ class GpApp:
         self.best_fitness.append(best_fitness)
         self.avg_fitness.append(fitness_sum / self.pop_size)
         self.done_generations.append(gen)
+        self.best_indiv = best_individual
         print(" Best Individual=\n" + str(best_individual) +
               "Generation=" + str(gen) +
               " Avg Fitness=" + str(fitness_sum / self.pop_size) +
@@ -290,6 +292,11 @@ class GpApp:
             ws.cell(row=i, column=2, value=avg)
         for i, best in enumerate(self.best_fitness, start=1):
             ws.cell(row=i, column=3, value=best)
+
+        program_filename = filename.replace(".xlsx", '.gpl')
+
+        serializer = TreeSerializer()
+        serializer.serialize(self.best_indiv, program_filename)
 
         # Zapisanie pliku
         wb.save(filename)
@@ -312,10 +319,10 @@ class GpApp:
                 self.pop.append(new_individual)
             best_f = self.stats(gen)
             if best_f <= 0.001:
-                self.save_data_to_excel()
+                self.save_data_to_excel(self.filename.replace(".txt", '.xlsx'))
                 print('PROBLEM SOLVED')
                 return
-        self.save_data_to_excel()
+        self.save_data_to_excel(self.filename.replace(".txt", '.xlsx'))
         print('PROBLEM NOT SOLVED')
 
     def evaluate_with_problem_file(self, file_name: str, program):
@@ -324,20 +331,20 @@ class GpApp:
         value = 0
         for d in data:
             inputs, outputs = ast.literal_eval(d.split("] [")[0] + "]"), ast.literal_eval("[" + d.split("] [")[1])
-            # value += self.evaluate(program, inputs, outputs)
+            value += self.evaluate(program, inputs, outputs)
             # value += self.evaluate_1abc(program, inputs, outputs)
-            value += self.evaluate_1de(program, inputs, outputs)
+            # value += self.evaluate_1abc(program, inputs, outputs)
         return value
 
 
 def main():
-    gp = GpApp(pop_size=1000,
+    gp = GpApp(pop_size=25,
                crossover_prob=0.05,
                mutation_prob=0.05,
                t_size=5,
-               generations=200,
+               generations=100,
                depth=7,
-               filename='test_problems/problem_1be.txt')
+               filename='test_problems/problem_4b.txt')
     gp.create_random_population()
     gp.evolve()
 
