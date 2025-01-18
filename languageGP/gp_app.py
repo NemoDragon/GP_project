@@ -304,7 +304,7 @@ class GpApp:
     def plot_data(self):
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
-        ax.plot(self.done_generations, self.avg_fitness)
+        #ax.plot(self.done_generations, self.avg_fitness)
         ax.plot(self.done_generations, self.best_fitness)
         ax.set_xlabel('generations')
         ax.set_ylabel('fitness')
@@ -341,20 +341,20 @@ class GpApp:
         value = 0
         for d in data:
             inputs, outputs = ast.literal_eval(d.split("] [")[0] + "]"), ast.literal_eval("[" + d.split("] [")[1])
-            value += self.evaluate(program, inputs, outputs)
+            value += self.evaluate_1de(program, inputs, outputs)
             # value += self.evaluate_1abc(program, inputs, outputs)
             # value += self.evaluate_1abc(program, inputs, outputs)
         return value
 
 
 def main():
-    gp = GpApp(pop_size=25,
-               crossover_prob=0.05,
-               mutation_prob=0.05,
+    gp = GpApp(pop_size=50,
+               crossover_prob=0.1,
+               mutation_prob=0.1,
                t_size=5,
-               generations=100,
+               generations=200,
                depth=7,
-               filename='test_problems/problem_1adf.txt')
+               filename='test_problems/problem_1be.txt')
     gp.create_random_population()
     gp.evolve()
 

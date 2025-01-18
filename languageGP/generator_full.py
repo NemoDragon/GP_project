@@ -65,10 +65,7 @@ class RandomGPlanguageGeneratorFull:
 
     def generate_assignment(self, depth=0):
         var = self.generate_variable()
-        if depth >= self.max_depth:
-            expr = random.choice([self.generate_int(), self.generate_float(), self.generate_variable()])
-        else:
-            expr = self.generate_expression(depth + 1)
+        expr = self.generate_expression(depth + 1)
         return Node("assignment", None, [var, expr])
 
     def generate_output_statement(self, depth=0):
@@ -80,29 +77,16 @@ class RandomGPlanguageGeneratorFull:
         return Node("in", None, [var])
 
     def generate_statement(self, depth=0):
-        if depth >= self.max_depth - 1:
-            return random.choice([self.generate_assignment(depth),
-                                  self.generate_output_statement(depth),
-                                  self.generate_input_statement()])
-        if depth >= self.max_depth - 2:
-            stmt_type = random.choice([
-                lambda: self.generate_assignment(depth),
-                lambda: self.generate_output_statement(depth),
-                self.generate_input_statement
-            ])
-        else:
-            stmt_type = random.choice([
-                lambda: self.generate_if_statement(depth),
-                lambda: self.generate_loop_statement(depth),
-                lambda: self.generate_assignment(depth),
-                lambda: self.generate_output_statement(depth),
-                self.generate_input_statement
-            ])
+        stmt_type = random.choice([
+            lambda: self.generate_if_statement(depth),
+            lambda: self.generate_loop_statement(depth),
+            lambda: self.generate_assignment(depth),
+            lambda: self.generate_output_statement(depth),
+            self.generate_input_statement
+        ])
         return stmt_type()
 
     def generate_code_block(self, depth=0):
-        if depth >= self.max_depth - 1:
-            return Node("block", None, [self.generate_assignment(depth + 1) for i in range(self.block_size)])
         statements = [self.generate_statement(depth + 1) for i in range(self.block_size)]
         return Node("block", None, statements)
 
