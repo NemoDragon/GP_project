@@ -27,7 +27,7 @@ class RandomGPlanguageGenerator:
         return Node("variable", f"x{random.randint(1, self.var_number)}")
 
     def generate_expression(self, depth=0):
-        if depth >= self.max_depth - 1 or random.random() < 0.5:
+        if depth >= self.max_depth or random.random() < 0.5:
             return random.choice(
                 [self.generate_int(),
                  self.generate_float(),
@@ -38,13 +38,25 @@ class RandomGPlanguageGenerator:
             op = random.choice(self.operators)
             return Node("expression", op, [left, right])
 
+    def generate_expression_for_condition(self, depth=0):
+        if depth >= self.max_depth - 1 or random.random() < 0.5:
+            return random.choice(
+                [self.generate_int(),
+                 self.generate_float(),
+                 self.generate_variable()])
+        else:
+            left = self.generate_expression_for_condition(depth + 1)
+            right = self.generate_expression_for_condition(depth + 1)
+            op = random.choice(self.operators)
+            return Node("expression", op, [left, right])
+
     def generate_condition(self, depth):
-        left = self.generate_expression(depth + 1)
-        right = self.generate_expression(depth + 1)
+        left = self.generate_expression_for_condition(depth + 1)
+        right = self.generate_expression_for_condition(depth + 1)
         op = random.choice(self.comparison_ops)
         if depth < self.max_depth - 2 and random.random() < 0.5:
-            left2 = self.generate_expression(depth + 1)
-            right2 = self.generate_expression(depth + 1)
+            left2 = self.generate_expression_for_condition(depth + 1)
+            right2 = self.generate_expression_for_condition(depth + 1)
             log_op = random.choice(self.log_ops)
             return Node("logical_condition", log_op, [
                 Node("comparison", op, [left, right]),
@@ -122,10 +134,10 @@ if __name__ == "__main__":
     tree = deserializer.deserialize('program.gpl')
     print(tree)
     serializer.serialize(tree, 'program_serialized.gpl')
-    #for i in random_program:
-    #    print("---------")
-    #    print(i)
-    #    print("---------")
+    for i in random_program:
+        print("---------")
+        print(i)
+        print("---------")
     print('==========================')
     print(tree)
     print('==========================')
