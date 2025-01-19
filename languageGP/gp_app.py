@@ -41,7 +41,7 @@ class GpApp:
                         GpApp.get_all_mutable_nodes(n.children[1], elements)
 
     # mutation - deletes one node of a program and generates new program in the place of the deleted node
-    def mutate(self, parent):
+    '''def mutate(self, parent):
         parent1 = copy.deepcopy(parent)
         parent_statements = []
         GpApp.get_all_mutable_nodes(parent1, parent_statements)
@@ -57,10 +57,39 @@ class GpApp:
                 node_parent.children[node_idx] = generated_node.children[0]
                 # print("zmieniono:\n" + str(node))
                 # print("dodano:\n" + str(generated_node.children[0]))
-        return parent1
+        return parent1'''
 
     @staticmethod
+    def mutate(individual):
+        mutated = copy.deepcopy(individual)
+        selected_node = GpApp.get_random_node(mutated)
+        prog_size = random.randint(1, 4)
+        block_size = random.randint(1, 3)
+        depth = random.randint(2, 7)
+        generator = RandomGPlanguageGenerator(prog_size, block_size, depth)
+        mutated_node = generator.generate_node(selected_node.node_type)
+        selected_node.children = mutated_node.children
+        selected_node.value = mutated_node.value
+        selected_node.node_type = mutated_node.node_type # Muatated node may have different type
+        return mutated
+
+    # excludes program node
+    @staticmethod
+    def get_random_node(individual):
+        individual_nodes = GpApp.flatten_individual_tree(individual)[1:]
+        return random.choice(individual_nodes)
+
+    @staticmethod
+    def flatten_individual_tree(individual):
+        def flatten(node):
+            nodes = [node]  # Include the current node
+            for child in node.children:  # Recursively include children
+                nodes.extend(flatten(child))
+            return nodes
+        return flatten(individual)
+
     # crossover - replace one node of the first program with the other node of the second program
+    @staticmethod
     def crossover(parent1, parent2):
         parent11 = copy.deepcopy(parent1)
         parent22 = copy.deepcopy(parent2)
@@ -359,5 +388,24 @@ def main():
     gp.evolve()
 
 
+def mutate_test():
+    prog_size = random.randint(1, 4)
+    block_size = random.randint(1, 3)
+    max_depth = random.randint(2, 9)
+    generator = RandomGPlanguageGenerator(prog_size, block_size, max_depth)
+    prog = generator.generate_program()
+    gp = GpApp(pop_size=50,
+               crossover_prob=0.1,
+               mutation_prob=0.1,
+               t_size=5,
+               generations=200,
+               depth=7,
+               filename='')
+    print(prog)
+    mutated = gp.mutate(prog)
+    print('=====================')
+    print(mutated)
+
 if __name__ == "__main__":
-    main()
+    #main()
+    mutate_test()

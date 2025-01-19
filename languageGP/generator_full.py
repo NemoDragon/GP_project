@@ -50,7 +50,7 @@ class RandomGPlanguageGeneratorFull:
             op = random.choice(self.operators)
             return Node("expression", op, [left, right])
 
-    def generate_condition(self, depth):
+    def generate_condition(self, depth=0):
         left = self.generate_expression_for_condition(depth + 1)
         right = self.generate_expression_for_condition(depth + 1)
         op = random.choice(self.comparison_ops)

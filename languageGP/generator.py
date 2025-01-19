@@ -15,6 +15,37 @@ class RandomGPlanguageGenerator:
     comparison_ops = ["==", "!=", "<", "<=", ">", ">="]
     log_ops = ["and", "or"]
 
+    def generate_node(self, node_type):
+        # 'expression', 'comparison', 'logical_condition'
+        generators = {
+            "int": self.generate_terminal,
+            "float": self.generate_terminal,
+            "variable": self.generate_terminal,
+            "expression": self.generate_expression,
+            "logical_condition": self.generate_condition,
+            "comparison": self.generate_expression_for_condition,
+            "if": self.generate_statement,
+            "loop": self.generate_statement,
+            "assignment": self.generate_statement,
+            "out": self.generate_statement,
+            "in": self.generate_statement,
+            "block": self.generate_code_block,
+            "program": self.generate_program,
+        }
+
+        if node_type not in generators:
+            raise ValueError(f"Unrecognized node_type: {node_type}")
+
+        return generators[node_type]()
+
+    def generate_terminal(self):
+        generators = [
+            self.generate_int,
+            self.generate_float,
+            self.generate_variable
+        ]
+        return random.choice(generators)()
+
     @staticmethod
     def generate_int():
         return Node("int", int(random.randint(0, 100)))
@@ -50,7 +81,7 @@ class RandomGPlanguageGenerator:
             op = random.choice(self.operators)
             return Node("expression", op, [left, right])
 
-    def generate_condition(self, depth):
+    def generate_condition(self, depth=0):
         left = self.generate_expression_for_condition(depth + 1)
         right = self.generate_expression_for_condition(depth + 1)
         op = random.choice(self.comparison_ops)
