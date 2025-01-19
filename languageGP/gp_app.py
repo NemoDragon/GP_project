@@ -79,6 +79,7 @@ class GpApp:
         individual_nodes = GpApp.flatten_individual_tree(individual)[1:]
         return random.choice(individual_nodes)
 
+
     @staticmethod
     def flatten_individual_tree(individual):
         def flatten(node):
@@ -88,8 +89,16 @@ class GpApp:
             return nodes
         return flatten(individual)
 
-    # crossover - replace one node of the first program with the other node of the second program
     @staticmethod
+    def get_random_node_of_type(individual, node_types):
+        nodes = GpApp.flatten_individual_tree(individual)[1:]
+        filtered = list(filter(lambda node: node.node_type in node_types, nodes))
+        if len(filtered) == 0:
+            return None
+        return random.choice(filtered)
+
+    # crossover - replace one node of the first program with the other node of the second program
+    '''@staticmethod
     def crossover(parent1, parent2):
         parent11 = copy.deepcopy(parent1)
         parent22 = copy.deepcopy(parent2)
@@ -106,7 +115,56 @@ class GpApp:
         node_parent2.children[node_idx2] = buffer
         # print("przeniesiono z 1 do 2:\n" + str(node1))
         # print("przeniesiono z 2 do 1:\n" + str(node2))
-        return parent11, parent22
+        return parent11, parent22'''
+
+    '''
+    "int": self.generate_terminal,
+            "float": self.generate_terminal,
+            "variable": self.generate_terminal,
+            "expression": self.generate_expression,
+            "logical_condition": self.generate_condition,
+            "comparison": self.generate_expression_for_condition,
+            "if": self.generate_statement,
+            "loop": self.generate_statement,
+            "assignment": self.generate_statement,
+            "out": self.generate_statement,
+            "in": self.generate_statement,
+            "block": self.generate_code_block,
+            "program": self.generate_program,'''
+
+    @staticmethod
+    def crossover(individual1, individual2):
+        indiv1 = copy.deepcopy(individual1)
+        indiv2 = copy.deepcopy(individual2)
+
+        statement_types = ['if', 'loop', 'assignment', 'out', 'in']
+        terminal_types = ['float', 'int', 'variable']
+
+        indiv1_node = GpApp.get_random_node(indiv1)
+        indiv2_node = None
+
+        if indiv1_node.node_type == 'expression':
+            indiv2_node = GpApp.get_random_node_of_type(indiv2, ['expression'] + terminal_types)
+        elif indiv1_node.node_type == 'logical_condition':
+            indiv2_node = GpApp.get_random_node_of_type(indiv2, ['logical_condition'])
+        elif indiv1_node.node_type == 'comparison':
+            indiv2_node = GpApp.get_random_node_of_type(indiv2, ['comparison'])
+        elif indiv1_node.node_type == 'block':
+            indiv2_node = GpApp.get_random_node_of_type(indiv2, ['block'])
+        elif indiv1_node.node_type in terminal_types:
+            indiv2_node = GpApp.get_random_node_of_type(indiv2, terminal_types)
+        elif indiv1_node.node_type in statement_types:
+            indiv2_node = GpApp.get_random_node_of_type(indiv2, statement_types)
+
+        if indiv2_node is None:
+            indiv1_node = GpApp.get_random_node_of_type(indiv1, statement_types)
+            indiv2_node = GpApp.get_random_node_of_type(indiv2, statement_types)
+
+        indiv1_node.node_type, indiv2_node.node_type = indiv2_node.node_type, indiv1_node.node_type
+        indiv1_node.value, indiv2_node.value = indiv2_node.value, indiv1_node.value
+        indiv1_node.children, indiv2_node.children = indiv2_node.children, indiv1_node.children
+
+        return indiv1, indiv2
 
     @staticmethod
     def output_expression(node):
@@ -387,6 +445,26 @@ def main():
     gp.create_random_population()
     gp.evolve()
 
+def crossover_test():
+    prog_size = random.randint(1, 4)
+    block_size = random.randint(1, 3)
+    max_depth = random.randint(2, 9)
+    generator = RandomGPlanguageGenerator(prog_size, block_size, max_depth)
+    prog1 = generator.generate_program()
+    prog2 = generator.generate_program()
+    gp = GpApp(pop_size=50,
+               crossover_prob=0.1,
+               mutation_prob=0.1,
+               t_size=5,
+               generations=200,
+               depth=7,
+               filename='')
+    print(prog1)
+    print('=====================')
+    print(prog2)
+    print('=====================')
+    mutated1, mutated2 = gp.crossover(prog1, prog2)
+    print(mutated1)
 
 def mutate_test():
     prog_size = random.randint(1, 4)
@@ -408,4 +486,5 @@ def mutate_test():
 
 if __name__ == "__main__":
     #main()
-    mutate_test()
+    #mutate_test()
+    crossover_test()
