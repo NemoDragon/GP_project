@@ -1,4 +1,6 @@
 import ast
+from typing import Callable
+
 import matplotlib.pyplot as plt
 from openpyxl import Workbook
 from generator import RandomGPlanguageGenerator
@@ -21,6 +23,7 @@ class GpApp:
                  init_max_block_size=3,
                  max_var_number=20,
                  grow_full_ratio=0.5,
+                 choose_roulette=False,
                  filename='problem.txt'):
         self.pop_size = pop_size
         self.crossover_prob = crossover_prob
@@ -32,6 +35,7 @@ class GpApp:
         self.init_max_block_size = init_max_block_size
         self.max_var_number = max_var_number
         self.grow_full_ratio = grow_full_ratio
+        self.choose_roulette = choose_roulette
         self.filename = filename
         self.best_fitness = []
         self.avg_fitness = []
@@ -92,7 +96,7 @@ class GpApp:
             mutated_node = generator.generate_node(selected_node.node_type)
         selected_node.children = mutated_node.children
         selected_node.value = mutated_node.value
-        selected_node.node_type = mutated_node.node_type # Mutated node may have different type
+        selected_node.node_type = mutated_node.node_type  # Mutated node may have different type
         return mutated
 
     # excludes program node
@@ -106,7 +110,6 @@ class GpApp:
             return node, prev
         return random.choice(individual_nodes[1:])
 
-
     @staticmethod
     def flatten_individual_tree(individual):
         def flatten(node):
@@ -114,6 +117,7 @@ class GpApp:
             for child in node.children:  # Recursively include children
                 nodes.extend(flatten(child))
             return nodes
+
         return flatten(individual)
 
     @staticmethod
@@ -179,7 +183,8 @@ class GpApp:
         elif indiv1_node.node_type == 'block':
             indiv2_node = GpApp.get_random_node_of_type(indiv2, ['block'])
         elif indiv1_node.node_type in terminal_types:
-            if indiv1_node.node_type == 'variable' and GpApp.is_variable_context_left_side(indiv1_node, indiv1_node_prev):
+            if indiv1_node.node_type == 'variable' and GpApp.is_variable_context_left_side(indiv1_node,
+                                                                                           indiv1_node_prev):
                 indiv2_node = GpApp.get_random_node_of_type(indiv2, ['variable'])
             else:
                 indiv2_node = GpApp.get_random_node_of_type(indiv2, terminal_types)
@@ -194,7 +199,7 @@ class GpApp:
         indiv1_node.value, indiv2_node.value = indiv2_node.value, indiv1_node.value
         indiv1_node.children, indiv2_node.children = indiv2_node.children, indiv1_node.children
 
-        return indiv1, indiv2 # In evolution always use indiv1! indiv2 might be semantically incorrect
+        return indiv1, indiv2  # In evolution always use indiv1! indiv2 might be semantically incorrect
 
     @staticmethod
     def output_expression(node):
@@ -306,7 +311,6 @@ class GpApp:
                     value += abs(program_output[i])
         return value
 
-
     @staticmethod
     # 1.3.A Program powinien odczytać dwie pierwsze liczy z wejścia i zwrócić na wyjściu (jedynie) większą z nich.
     # Na wejściu mogą być tylko całkowite liczby dodatnie w zakresie [0,9]
@@ -354,6 +358,36 @@ class GpApp:
                 worst_fitness = x_fitness
                 worst_program = x
         return worst_program
+
+    # selekcja ruletkowa - losując sposród wszystkich osobników zwraca najgorszego osobnika
+    def negative_roulette(self):
+        fitnesses_comulative = []
+        control_sum = 0
+        for program in self.pop:
+            eval = self.evaluate_with_problem_file(self.filename, program)
+            control_sum += eval
+            fitnesses_comulative.append(control_sum)
+        fitness_sum = fitnesses_comulative[-1]
+        number = random.uniform(0, fitness_sum)
+        for i in range(len(fitnesses_comulative)):
+            if fitnesses_comulative[i] >= number:
+                return self.pop[i]
+
+    # ta zwraca najlepszego
+    def roulette(self):
+        fitnesses_comulative = []
+        control_sum = 0
+        for program in self.pop:
+            eval = self.evaluate_with_problem_file(self.filename, program)
+            if eval < 0.001:
+                eval = 0.001
+            control_sum += (1 / eval)
+            fitnesses_comulative.append(control_sum)
+        fitness_sum = fitnesses_comulative[-1]
+        number = random.uniform(0, fitness_sum)
+        for i in range(len(fitnesses_comulative)):
+            if fitnesses_comulative[i] >= number:
+                return self.pop[i]
 
     # create_random_population - generates population of programs and inserts them into an array
     def create_random_population(self) -> None:
@@ -429,7 +463,7 @@ class GpApp:
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
         #ax.plot(self.done_generations, self.avg_fitness)
-        ax.plot(self.done_generations, self.best_fitness)
+        ax.plot(self.done_generations, self.best_fitness, marker="o", markersize=3)
         ax.set_xlabel('generations')
         ax.set_ylabel('fitness')
         plt.show()
@@ -441,12 +475,21 @@ class GpApp:
         for gen in range(1, self.generations):
             for i in range(self.pop_size):
                 if random.random() < self.crossover_prob:
-                    parent1, parent2 = self.tournament(self.t_size), self.tournament(self.t_size)
+                    if self.choose_roulette:
+                        parent1, parent2 = self.roulette(), self.roulette()
+                    else:
+                        parent1, parent2 = self.tournament(self.t_size), self.tournament(self.t_size)
                     new_individual = self.crossover(parent1, parent2)[0]
                 else:
-                    parent = self.tournament(self.t_size)
+                    if self.choose_roulette:
+                        parent = self.roulette()
+                    else:
+                        parent = self.tournament(self.t_size)
                     new_individual = self.mutate(parent)
-                offspring = self.negative_tournament(self.t_size)
+                if self.choose_roulette:
+                    offspring = self.negative_roulette()
+                else:
+                    offspring = self.negative_tournament(self.t_size)
                 self.pop.remove(offspring)
                 self.pop.append(new_individual)
             best_f = self.stats(gen)
@@ -459,7 +502,7 @@ class GpApp:
         self.plot_data()
         print('PROBLEM NOT SOLVED')
 
-    def evaluate_with_problem_file(self, file_name: str, program):
+    def evaluate_with_problem_file(self, file_name: str, program) -> float:
         with open(file_name, 'r') as f:
             data = f.read().splitlines()
         value = 0
@@ -482,9 +525,11 @@ def main():
                init_max_block_size=4,
                max_var_number=20,
                grow_full_ratio=0.5,
+               choose_roulette=False,
                filename='test_problems/problem_1be.txt')
     gp.create_random_population()
     gp.evolve()
+
 
 def crossover_test():
     prog_size = random.randint(1, 4)
@@ -507,6 +552,7 @@ def crossover_test():
     mutated1, mutated2 = gp.crossover(prog1, prog2)
     print(mutated1)
 
+
 def mutate_test():
     prog_size = random.randint(1, 4)
     block_size = random.randint(1, 3)
@@ -525,7 +571,8 @@ def mutate_test():
     print('=====================')
     print(mutated)
 
+
 if __name__ == "__main__":
     main()
-    mutate_test()
-    crossover_test()
+    #mutate_test()
+    #crossover_test()
