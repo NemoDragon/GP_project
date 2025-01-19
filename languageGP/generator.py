@@ -160,7 +160,7 @@ if __name__ == "__main__":
     generator = RandomGPlanguageGenerator(program_size=2, block_size=2, max_depth=5)
     random_program = [generator.generate_program() for i in range(10)]
     serializer = TreeSerializer()
-    #serializer.serialize(random_program, 'program.gpl')
+    serializer.serialize(random_program[0], 'new_program.gpl')
     deserializer = TreeDeserializer()
     tree = deserializer.deserialize('program.gpl')
     print(tree)

@@ -2,6 +2,7 @@ import ast
 import matplotlib.pyplot as plt
 from openpyxl import Workbook
 from generator import RandomGPlanguageGenerator
+from generator_full import RandomGPlanguageGeneratorFull
 from languageGP.interpreter import GplInterpreter
 from languageGP.serialization import TreeDeserializer, TreeSerializer
 from node import Node
@@ -15,14 +16,22 @@ class GpApp:
                  mutation_prob=0.02,
                  t_size=5,
                  generations=100,
-                 depth=5,
+                 init_max_depth=5,
+                 init_max_program_size=10,
+                 init_max_block_size=3,
+                 max_var_number=20,
+                 grow_full_ratio=0.5,
                  filename='problem.txt'):
         self.pop_size = pop_size
         self.crossover_prob = crossover_prob
         self.mutation_prob = mutation_prob
         self.t_size = t_size
         self.generations = generations
-        self.depth = depth
+        self.init_max_depth = init_max_depth
+        self.init_max_program_size = init_max_program_size
+        self.init_max_block_size = init_max_block_size
+        self.max_var_number = max_var_number
+        self.grow_full_ratio = grow_full_ratio
         self.filename = filename
         self.best_fitness = []
         self.avg_fitness = []
@@ -67,12 +76,12 @@ class GpApp:
                     return True
         return False
 
-    @staticmethod
-    def mutate(individual):
-        prog_size = random.randint(1, 4)
-        block_size = random.randint(1, 3)
-        depth = random.randint(2, 7)
-        generator = RandomGPlanguageGenerator(prog_size, block_size, depth)
+    def mutate(self, individual):
+        prog_size = random.randint(1, self.init_max_program_size)
+        block_size = random.randint(1, self.init_max_block_size)
+        depth = random.randint(2, self.init_max_depth)
+        vars = random.randint(1, self.max_var_number)
+        generator = RandomGPlanguageGenerator(prog_size, block_size, depth, vars)
 
         mutated = copy.deepcopy(individual)
         selected_node, prev_node = GpApp.get_random_node(mutated, with_previous_node=True)
@@ -349,10 +358,14 @@ class GpApp:
     # create_random_population - generates population of programs and inserts them into an array
     def create_random_population(self) -> None:
         for i in range(self.pop_size):
-            prog_size = random.randint(1, 4)
-            block_size = random.randint(1, 3)
-            max_depth = random.randint(2, 9)
-            generator = RandomGPlanguageGenerator(prog_size, block_size, max_depth)
+            prog_size = random.randint(1, self.init_max_program_size)
+            block_size = random.randint(1, self.init_max_block_size)
+            max_depth = random.randint(2, self.init_max_depth)
+            variables = random.randint(1, self.max_var_number)
+            if self.grow_full_ratio * self.pop_size < i:
+                generator = RandomGPlanguageGenerator(prog_size, block_size, max_depth, variables)
+            else:
+                generator = RandomGPlanguageGeneratorFull(prog_size, block_size, max_depth, variables)
             prog = generator.generate_program()
             self.pop.append(prog)
 
@@ -362,7 +375,10 @@ class GpApp:
         print("TSIZE=" + str(self.t_size))
         print("CROSSOVER_PROB=" + str(self.crossover_prob))
         print("MUTATION_PROB=" + str(self.mutation_prob))
-        print("DEPTH=" + str(self.depth))
+        print("INIT_MAX_DEPTH=" + str(self.init_max_depth))
+        print("INIT_MAX_PROGRAM_SIZE=" + str(self.init_max_program_size))
+        print("INIT_MAX_BLOCK_SIZE=" + str(self.init_max_block_size))
+        print("MAX_VAR_NUMBER=" + str(self.max_var_number))
         print("GENERATIONS=" + str(self.generations))
         print("FILENAME=" + str(self.filename))
 
@@ -461,7 +477,11 @@ def main():
                mutation_prob=0.1,
                t_size=5,
                generations=200,
-               depth=7,
+               init_max_depth=7,
+               init_max_program_size=10,
+               init_max_block_size=4,
+               max_var_number=20,
+               grow_full_ratio=0.5,
                filename='test_problems/problem_1be.txt')
     gp.create_random_population()
     gp.evolve()
@@ -478,7 +498,7 @@ def crossover_test():
                mutation_prob=0.1,
                t_size=5,
                generations=200,
-               depth=7,
+               init_max_depth=7,
                filename='')
     print(prog1)
     print('=====================')
@@ -498,7 +518,7 @@ def mutate_test():
                mutation_prob=0.1,
                t_size=5,
                generations=200,
-               depth=7,
+               init_max_depth=7,
                filename='')
     print(prog)
     mutated = gp.mutate(prog)
@@ -506,6 +526,6 @@ def mutate_test():
     print(mutated)
 
 if __name__ == "__main__":
-    #main()
-    #mutate_test()
+    main()
+    mutate_test()
     crossover_test()
