@@ -60,24 +60,42 @@ class GpApp:
         return parent1'''
 
     @staticmethod
+    def is_variable_context_left_side(variable_node, parent_node):
+        if variable_node.node_type == 'variable':
+            if parent_node.node_type in ('in', 'assignment', 'array_assignment'):
+                if variable_node == parent_node.children[0]:
+                    return True
+        return False
+
+    @staticmethod
     def mutate(individual):
-        mutated = copy.deepcopy(individual)
-        selected_node = GpApp.get_random_node(mutated)
         prog_size = random.randint(1, 4)
         block_size = random.randint(1, 3)
         depth = random.randint(2, 7)
         generator = RandomGPlanguageGenerator(prog_size, block_size, depth)
-        mutated_node = generator.generate_node(selected_node.node_type)
+
+        mutated = copy.deepcopy(individual)
+        selected_node, parent_node = GpApp.get_random_node(mutated, with_parent=True)
+        # take into account context of variable usage
+        if GpApp.is_variable_context_left_side(selected_node, parent_node):
+            mutated_node = generator.generate_variable()
+        else:
+            mutated_node = generator.generate_node(selected_node.node_type)
         selected_node.children = mutated_node.children
         selected_node.value = mutated_node.value
-        selected_node.node_type = mutated_node.node_type # Muatated node may have different type
+        selected_node.node_type = mutated_node.node_type # Mutated node may have different type
         return mutated
 
     # excludes program node
     @staticmethod
-    def get_random_node(individual):
-        individual_nodes = GpApp.flatten_individual_tree(individual)[1:]
-        return random.choice(individual_nodes)
+    def get_random_node(individual, with_parent=False):
+        individual_nodes = GpApp.flatten_individual_tree(individual)
+        if with_parent:
+            node = random.choice(individual_nodes[1:])
+            idx = individual_nodes.index(node)
+            parent = individual_nodes[idx - 1]
+            return node, parent
+        return random.choice(individual_nodes[1:])
 
 
     @staticmethod
@@ -140,7 +158,7 @@ class GpApp:
         statement_types = ['if', 'loop', 'assignment', 'out', 'in']
         terminal_types = ['float', 'int', 'variable']
 
-        indiv1_node = GpApp.get_random_node(indiv1)
+        indiv1_node, indiv1_node_parent = GpApp.get_random_node(indiv1, with_parent=True)
         indiv2_node = None
 
         if indiv1_node.node_type == 'expression':
@@ -152,7 +170,10 @@ class GpApp:
         elif indiv1_node.node_type == 'block':
             indiv2_node = GpApp.get_random_node_of_type(indiv2, ['block'])
         elif indiv1_node.node_type in terminal_types:
-            indiv2_node = GpApp.get_random_node_of_type(indiv2, terminal_types)
+            if indiv1_node.node_type == 'variable' and GpApp.is_variable_context_left_side(indiv1_node, indiv1_node_parent):
+                indiv2_node = GpApp.get_random_node_of_type(indiv2, ['variable'])
+            else:
+                indiv2_node = GpApp.get_random_node_of_type(indiv2, terminal_types)
         elif indiv1_node.node_type in statement_types:
             indiv2_node = GpApp.get_random_node_of_type(indiv2, statement_types)
 
@@ -164,7 +185,7 @@ class GpApp:
         indiv1_node.value, indiv2_node.value = indiv2_node.value, indiv1_node.value
         indiv1_node.children, indiv2_node.children = indiv2_node.children, indiv1_node.children
 
-        return indiv1, indiv2
+        return indiv1, indiv2 # In evolution always use indiv1! indiv2 might be semantically incorrect
 
     @staticmethod
     def output_expression(node):

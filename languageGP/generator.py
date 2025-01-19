@@ -5,7 +5,7 @@ from interpreter import GplInterpreter
 
 
 class RandomGPlanguageGenerator:
-    def __init__(self, program_size=10, block_size=3, max_depth=2, var_number=1):
+    def __init__(self, program_size=10, block_size=3, max_depth=2, var_number=20):
         self.program_size = program_size
         self.block_size = block_size
         self.max_depth = max_depth
