@@ -75,9 +75,9 @@ class GpApp:
         generator = RandomGPlanguageGenerator(prog_size, block_size, depth)
 
         mutated = copy.deepcopy(individual)
-        selected_node, parent_node = GpApp.get_random_node(mutated, with_parent=True)
+        selected_node, prev_node = GpApp.get_random_node(mutated, with_previous_node=True)
         # take into account context of variable usage
-        if GpApp.is_variable_context_left_side(selected_node, parent_node):
+        if GpApp.is_variable_context_left_side(selected_node, prev_node):
             mutated_node = generator.generate_variable()
         else:
             mutated_node = generator.generate_node(selected_node.node_type)
@@ -88,13 +88,13 @@ class GpApp:
 
     # excludes program node
     @staticmethod
-    def get_random_node(individual, with_parent=False):
+    def get_random_node(individual, with_previous_node=False):
         individual_nodes = GpApp.flatten_individual_tree(individual)
-        if with_parent:
+        if with_previous_node:
             node = random.choice(individual_nodes[1:])
-            idx = individual_nodes.index(node)
-            parent = individual_nodes[idx - 1]
-            return node, parent
+            idx = individual_nodes.index(node) - 1
+            prev = individual_nodes[idx - 1]
+            return node, prev
         return random.choice(individual_nodes[1:])
 
 
@@ -158,7 +158,7 @@ class GpApp:
         statement_types = ['if', 'loop', 'assignment', 'out', 'in']
         terminal_types = ['float', 'int', 'variable']
 
-        indiv1_node, indiv1_node_parent = GpApp.get_random_node(indiv1, with_parent=True)
+        indiv1_node, indiv1_node_prev = GpApp.get_random_node(indiv1, with_previous_node=True)
         indiv2_node = None
 
         if indiv1_node.node_type == 'expression':
@@ -170,7 +170,7 @@ class GpApp:
         elif indiv1_node.node_type == 'block':
             indiv2_node = GpApp.get_random_node_of_type(indiv2, ['block'])
         elif indiv1_node.node_type in terminal_types:
-            if indiv1_node.node_type == 'variable' and GpApp.is_variable_context_left_side(indiv1_node, indiv1_node_parent):
+            if indiv1_node.node_type == 'variable' and GpApp.is_variable_context_left_side(indiv1_node, indiv1_node_prev):
                 indiv2_node = GpApp.get_random_node_of_type(indiv2, ['variable'])
             else:
                 indiv2_node = GpApp.get_random_node_of_type(indiv2, terminal_types)
