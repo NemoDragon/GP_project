@@ -46,10 +46,8 @@ class EvaluateFunctions:
         return value
 
     @staticmethod
-    # 1.1.DE Program powinien wygenerować na pierwszej pozycji na wyjściu liczbę
-    # d) 1
-    # e) 789 .
-    # Poza liczbą d) 1 e) 789 może też zwrócić inne liczby.
+    # 1.1.D Program powinien wygenerować na pierwszej pozycji na wyjściu liczbę 1
+    # Poza liczbą 1 może też zwrócić inne liczby.
     def evaluate_1de(program, expected_input: list[int | float], expected_output: list[int | float]) -> float:
         value = 0
         interpreter = GplInterpreter(input_vector=expected_input)
@@ -69,30 +67,6 @@ class EvaluateFunctions:
                     value += abs(program_output[i])
         return value
 
-    @staticmethod
-    # 1.1.F Program powinien wygenerować na wyjściu liczbę jako jedyną liczbę
-    # f) 1.
-    # Poza liczbą f) 1 NIE powinien nic więcej wygenerować.
-    def evaluate_1f(program, expected_input: list[int | float], expected_output: list[int | float]) -> float:
-        value = 0
-        interpreter = GplInterpreter(input_vector=expected_input)
-        program_output = interpreter.execute(program)
-        program_inputs_count = interpreter.used_inputs
-        input_number_error = abs(len(expected_input) - program_inputs_count)
-        value += input_number_error * 100
-        output_number_error = abs(len(expected_output) - len(program_output))
-        value += output_number_error * 100
-        if len(program_output) == 0:
-            value += 1000
-        elif len(program_output) == 1 and expected_output[0] == program_output[0]:
-            value += 0
-        else:
-            for i in range(len(program_output)):
-                if i == 0:
-                    value += abs(program_output[i] - expected_output[i])
-                else:
-                    value += abs(program_output[i])
-        return value
 
     @staticmethod
     # 1.3.A Program powinien odczytać dwie pierwsze liczy z wejścia i zwrócić na wyjściu (jedynie) większą z nich.
@@ -116,4 +90,202 @@ class EvaluateFunctions:
                     value += abs(program_output[i] - expected_output[i])
                 else:
                     value += abs(program_output[i])
+        return value
+
+    @staticmethod
+    # 1.1.A Program powinien wygenerować na wyjściu (na dowolnej pozycji w danych wyjściowych) liczbę 1
+    # Poza liczbą 1 może też zwrócić inne liczby.
+    def evaluate_1a(program, expected_input: list[int | float], expected_output: list[int | float]) -> float:
+        value = 0
+        interpreter = GplInterpreter(input_vector=expected_input)
+        program_output = interpreter.execute(program)
+        program_inputs_count = interpreter.used_inputs
+        input_number_error = abs(len(expected_input) - program_inputs_count)
+        value += input_number_error * 100
+        if len(program_output) == 0:
+            value += 1000
+        elif expected_output[0] in program_output:
+            value += 0
+        else:
+            for i in range(len(program_output)):
+                value += abs(program_output[i] - expected_output[0])
+        return value
+
+
+    @staticmethod
+    # 1.1.B Program powinien wygenerować na wyjściu (na dowolnej pozycji w danych wyjściowych) liczbę 789.
+    # Poza liczbą 789 może też zwrócić inne liczby.
+    def evaluate_1b(program, expected_input: list[int | float], expected_output: list[int | float]) -> float:
+        value = 0
+        interpreter = GplInterpreter(input_vector=expected_input)
+        program_output = interpreter.execute(program)
+        program_inputs_count = interpreter.used_inputs
+        input_number_error = abs(len(expected_input) - program_inputs_count)
+        value += input_number_error * 100
+        if len(program_output) == 0:
+            value += 1000
+        elif expected_output[0] in program_output:
+            value += 0
+        else:
+            for i in range(len(program_output)):
+                value += abs(program_output[i] - expected_output[0]) / 10
+        return value
+
+    @staticmethod
+    # 1.1.C Program powinien wygenerować na wyjściu (na dowolnej pozycji w danych wyjściowych) liczbę 31415.
+    # Poza liczbą 31415 może też zwrócić inne liczby.
+    def evaluate_1c(program, expected_input: list[int | float], expected_output: list[int | float]) -> float:
+        value = 0
+        interpreter = GplInterpreter(input_vector=expected_input)
+        program_output = interpreter.execute(program)
+        program_inputs_count = interpreter.used_inputs
+        input_number_error = abs(len(expected_input) - program_inputs_count)
+        value += input_number_error * 100
+        if len(program_output) == 0:
+            value += 1000
+        elif expected_output[0] in program_output:
+            value += 0
+        else:
+            for i in range(len(program_output)):
+                value += abs(program_output[i] - expected_output[0]) / 1000
+        return value
+
+    @staticmethod
+    # 1.1.D Program powinien wygenerować na pierwszej pozycji na wyjściu liczbę 1
+    # Poza liczbą 1 może też zwrócić inne liczby.
+    def evaluate_1d(program, expected_input: list[int | float], expected_output: list[int | float]) -> float:
+        value = 0
+        interpreter = GplInterpreter(input_vector=expected_input)
+        program_output = interpreter.execute(program)
+        program_inputs_count = interpreter.used_inputs
+        input_number_error = abs(len(expected_input) - program_inputs_count)
+        value += input_number_error * 100
+        if len(program_output) == 0:
+            value += 1000
+        elif expected_output[0] == program_output[0]:
+            value += 0
+        else:
+            for i in range(len(program_output)):
+                if i == 0:
+                    value += abs(program_output[i] - expected_output[i])
+                else:
+                    value += abs(program_output[i])
+        return value
+
+    @staticmethod
+    # 1.1.E Program powinien wygenerować na pierwszej pozycji na wyjściu liczbę 789.
+    # Poza liczbą 789 może też zwrócić inne liczby.
+    def evaluate_1e(program, expected_input: list[int | float], expected_output: list[int | float]) -> float:
+        value = 0
+        interpreter = GplInterpreter(input_vector=expected_input)
+        program_output = interpreter.execute(program)
+        program_inputs_count = interpreter.used_inputs
+        input_number_error = abs(len(expected_input) - program_inputs_count)
+        value += input_number_error * 100
+        if len(program_output) == 0:
+            value += 1000
+        elif expected_output[0] == program_output[0]:
+            value += 0
+        else:
+            for i in range(len(program_output)):
+                if i == 0:
+                    value += abs(program_output[i] - expected_output[i]) / 10
+                else:
+                    value += abs(program_output[i]) / 10
+        return value
+
+    @staticmethod
+    # 1.1.F Program powinien wygenerować na wyjściu liczbę jako jedyną liczbę 1. Poza liczbą 1 NIE powinien nic więcej wygenerować.
+    def evaluate_1f(program, expected_input: list[int | float], expected_output: list[int | float]) -> float:
+        value = 0
+        interpreter = GplInterpreter(input_vector=expected_input)
+        program_output = interpreter.execute(program)
+        program_inputs_count = interpreter.used_inputs
+        input_number_error = abs(len(expected_input) - program_inputs_count)
+        value += input_number_error * 100
+        output_number_error = abs(len(expected_output) - len(program_output))
+        value += output_number_error * 100
+        if len(program_output) == 0:
+            value += 1000
+        elif len(program_output) == 1 and expected_output[0] == program_output[0]:
+            value += 0
+        else:
+            for i in range(len(program_output)):
+                if i == 0:
+                    value += abs(program_output[i] - expected_output[i])
+                else:
+                    value += abs(program_output[i])
+        return value
+
+    @staticmethod
+    # 1.2.A Program powinien odczytać dwie pierwsze liczy z wejścia i zwrócić na wyjściu (jedynie) ich sumę.
+    # Na wejściu mogą być tylko całkowite liczby dodatnie w zakresie [0,9]
+    def evaluate_2a(program, expected_input: list[int | float], expected_output: list[int | float]) -> float:
+        value = 0
+        interpreter = GplInterpreter(input_vector=expected_input)
+        program_output = interpreter.execute(program)
+        program_inputs_count = interpreter.used_inputs
+        input_number_error = abs(len(expected_input) - program_inputs_count)
+        value += input_number_error * 100
+        output_number_error = abs(len(expected_output) - len(program_output))
+        value += output_number_error * 100
+        if len(program_output) == 0:
+            value += 1000
+        elif len(program_output) == 1 and expected_output[0] == program_output[0]:
+            value += 0
+        else:
+            for i in range(len(program_output)):
+                if i == 0:
+                    value += abs(program_output[i] - expected_output[i])
+                else:
+                    value += abs(program_output[i])
+        return value
+
+    @staticmethod
+    # 1.2.B Program powinien odczytać dwie pierwsze liczy z wejścia i zwrócić na wyjściu (jedynie) ich sumę.
+    # Na wejściu mogą być tylko całkowite liczby w zakresie [-9,9]
+    def evaluate_2b(program, expected_input: list[int | float], expected_output: list[int | float]) -> float:
+        value = 0
+        interpreter = GplInterpreter(input_vector=expected_input)
+        program_output = interpreter.execute(program)
+        program_inputs_count = interpreter.used_inputs
+        input_number_error = abs(len(expected_input) - program_inputs_count)
+        value += input_number_error * 100
+        output_number_error = abs(len(expected_output) - len(program_output))
+        value += output_number_error * 100
+        if len(program_output) == 0:
+            value += 1000
+        elif len(program_output) == 1 and expected_output[0] == program_output[0]:
+            value += 0
+        else:
+            for i in range(len(program_output)):
+                if i == 0:
+                    value += abs(program_output[i] - expected_output[i])
+                else:
+                    value += abs(program_output[i])
+        return value
+
+
+    @staticmethod
+    # 1.2.C Program powinien odczytać dwie pierwsze liczy z wejścia i zwrócić na wyjściu (jedynie) ich sumę.
+    # Na wejściu mogą być tylko całkowite liczby dodatnie w zakresie [-9999,9999]
+    def evaluate_2c(program, expected_input: list[int | float], expected_output: list[int | float]) -> float:
+        value = 0
+        interpreter = GplInterpreter(input_vector=expected_input)
+        program_output = interpreter.execute(program)
+        program_inputs_count = interpreter.used_inputs
+        input_number_error = abs(len(expected_input) - program_inputs_count)
+        value += input_number_error * 100
+        output_number_error = abs(len(expected_output) - len(program_output))
+        value += output_number_error * 100
+        if len(program_output) == 0:
+            value += 1000
+        elif len(program_output) == 1 and expected_output[0] == program_output[0]:
+            value += 0
+        else:
+            for i in range(len(program_output)):
+                if i == 0:
+                    value += abs(program_output[i] - expected_output[i]) / 1000
+                else:
+                    value += abs(program_output[i]) / 1000
         return value

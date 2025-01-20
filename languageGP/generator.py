@@ -157,7 +157,7 @@ class RandomGPlanguageGenerator:
 
 
 if __name__ == "__main__":
-    generator = RandomGPlanguageGenerator(program_size=2, block_size=2, max_depth=5)
+    generator = RandomGPlanguageGenerator(program_size=5, block_size=2, max_depth=3, var_number=3)
     random_program = [generator.generate_program() for i in range(10)]
     serializer = TreeSerializer()
     serializer.serialize(random_program[0], 'new_program.gpl')

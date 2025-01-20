@@ -287,7 +287,7 @@ class GpApp:
             block_size = random.randint(1, self.init_max_block_size)
             max_depth = random.randint(2, self.init_max_depth)
             variables = random.randint(1, self.max_var_number)
-            if self.grow_full_ratio * self.pop_size < i:
+            if i < self.grow_full_ratio * self.pop_size:
                 generator = RandomGPlanguageGenerator(prog_size, block_size, max_depth, variables)
             else:
                 generator = RandomGPlanguageGeneratorFull(prog_size, block_size, max_depth, variables)
@@ -304,6 +304,9 @@ class GpApp:
         print("INIT_MAX_PROGRAM_SIZE=" + str(self.init_max_program_size))
         print("INIT_MAX_BLOCK_SIZE=" + str(self.init_max_block_size))
         print("MAX_VAR_NUMBER=" + str(self.max_var_number))
+        print("GROW_FULL_RATIO=" + str(self.grow_full_ratio))
+        print("CHOOSE_ROULETTE=" + str(self.choose_roulette))
+        print("EVOLUTION_FN=" + str(self.evaluation_fn))
         print("GENERATIONS=" + str(self.generations))
         print("FILENAME=" + str(self.filename))
 
@@ -321,7 +324,7 @@ class GpApp:
         self.avg_fitness.append(fitness_sum / self.pop_size)
         self.done_generations.append(gen)
         self.best_indiv = best_individual
-        print(self.pop)
+        print(self.pop_size)
         print(" Best Individual=\n" + str(best_individual) +
               "Generation=" + str(gen) +
               " Avg Fitness=" + str(fitness_sum / self.pop_size) +
@@ -356,7 +359,14 @@ class GpApp:
         #ax.plot(self.done_generations, self.avg_fitness)
         ax.plot(self.done_generations, self.best_fitness, marker="o", markersize=3)
         ax.set_xlabel('generations')
-        ax.set_ylabel('fitness')
+        ax.set_ylabel('best fitness')
+        plt.show()
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        # ax.plot(self.done_generations, self.avg_fitness)
+        ax.plot(self.done_generations, self.avg_fitness, marker="o", markersize=3)
+        ax.set_xlabel('generations')
+        ax.set_ylabel('avg fitness')
         plt.show()
 
     # evolve
@@ -384,7 +394,7 @@ class GpApp:
                 self.pop.remove(offspring)
                 self.pop.append(new_individual)
             best_f = self.stats(gen)
-            if best_f <= 0.001:
+            if best_f <= 0.00001:
                 self.save_data_to_excel(self.filename.replace(".txt", '.xlsx'))
                 self.plot_data()
                 print('PROBLEM SOLVED')
@@ -400,8 +410,6 @@ class GpApp:
         for d in data:
             inputs, outputs = ast.literal_eval(d.split("] [")[0] + "]"), ast.literal_eval("[" + d.split("] [")[1])
             value += self.evaluation_fn(program, inputs, outputs)
-            # value += self.evaluate_1abc(program, inputs, outputs)
-            # value += self.evaluate_1abc(program, inputs, outputs)
         return value
 
 
@@ -409,7 +417,7 @@ def main():
     gp = GpApp(pop_size=50,
                crossover_prob=0.1,
                mutation_prob=0.1,
-               t_size=5,
+               t_size=2,
                generations=200,
                init_max_depth=7,
                init_max_program_size=10,
@@ -417,8 +425,8 @@ def main():
                max_var_number=20,
                grow_full_ratio=0.5,
                choose_roulette=False,
-               evaluation_fn=EvaluateFunctions.evaluate_1de,
-               filename='test_problems/problem_1be.txt')
+               evaluation_fn=EvaluateFunctions.evaluate_2b,
+               filename='test_problems/problem_2b.txt')
     gp.create_random_population()
     gp.evolve()
 

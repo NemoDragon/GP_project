@@ -5,7 +5,7 @@ from interpreter import GplInterpreter
 
 
 class RandomGPlanguageGeneratorFull:
-    def __init__(self, program_size=10, block_size=3, max_depth=2, var_number=1):
+    def __init__(self, program_size=10, block_size=3, max_depth=2, var_number=20):
         self.program_size = program_size
         self.block_size = block_size
         self.max_depth = max_depth
@@ -126,8 +126,10 @@ class RandomGPlanguageGeneratorFull:
 
 
 if __name__ == "__main__":
-    generator = RandomGPlanguageGeneratorFull(program_size=2, block_size=2, max_depth=5)
+    generator = RandomGPlanguageGeneratorFull(program_size=2, block_size=1, max_depth=4, var_number=10)
     random_program = [generator.generate_program() for i in range(10)]
+    serializer = TreeSerializer()
+    serializer.serialize(random_program[0], 'new_program.gpl')
     for i in random_program:
         print("---------")
         print(i)
