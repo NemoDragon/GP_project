@@ -366,6 +366,7 @@ class GpApp:
         # ax.plot(self.done_generations, self.avg_fitness)
         ax.plot(self.done_generations, self.avg_fitness, marker="o", markersize=3)
         ax.set_xlabel('generations')
+        ax.set_yscale('log')
         ax.set_ylabel('avg fitness')
         plt.show()
 
@@ -425,8 +426,8 @@ def main():
                max_var_number=20,
                grow_full_ratio=0.5,
                choose_roulette=False,
-               evaluation_fn=EvaluateFunctions.evaluate_2b,
-               filename='test_problems/problem_2b.txt')
+               evaluation_fn=EvaluateFunctions.evaluate_benchmark_27,
+               filename='test_problems/benchmark_27.txt')
     gp.create_random_population()
     gp.evolve()
 

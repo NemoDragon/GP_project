@@ -4,6 +4,16 @@ from languageGP.serialization import TreeDeserializer
 from node import Node
 from interpreter import GplInterpreter
 
+def generate_data(lines=800):
+    result = []
+    for _ in range(lines):
+        a, b, c = random.randint(-100, 100), random.randint(-100, 100), random.randint(-100, 100)
+        median = sorted([a, b, c])[1]
+        result.append(f"[{a}, {b}, {c}] [{median}]")
+    return result
+
+
+
 
 def create_problem_file(program: Node, inputs: list[list[int | float]]):
     outputs = []
@@ -29,4 +39,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    data = generate_data()
+    for line in data:
+        print(line)
+    #main()
