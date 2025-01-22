@@ -613,6 +613,6 @@ class EvaluateFunctions:
         if len(program_output) != 1:
             value += 10
         for i, output in enumerate(program_output):
-            if i < len(expected_input):
-                value += abs(expected_input[i] - output)
+            if i < len(expected_output):
+                value += abs(expected_output[i] - output)
         return value
