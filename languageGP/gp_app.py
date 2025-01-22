@@ -57,25 +57,6 @@ class GpApp:
                     if n.node_type in ['if', 'loop']:
                         GpApp.get_all_mutable_nodes(n.children[1], elements)
 
-    # mutation - deletes one node of a program and generates new program in the place of the deleted node
-    '''def mutate(self, parent):
-        parent1 = copy.deepcopy(parent)
-        parent_statements = []
-        GpApp.get_all_mutable_nodes(parent1, parent_statements)
-        for i in range(len(parent_statements)):
-            if random.random() < self.mutation_prob:
-                prog_size = random.randint(1, 4)
-                block_size = random.randint(1, 3)
-                depth = random.randint(2, 7)
-                generator = RandomGPlanguageGenerator(prog_size, block_size, depth)
-                generated_node = generator.generate_program()
-                node, node_parent = parent_statements[i]
-                node_idx = node_parent.children.index(node)
-                node_parent.children[node_idx] = generated_node.children[0]
-                # print("zmieniono:\n" + str(node))
-                # print("dodano:\n" + str(generated_node.children[0]))
-        return parent1'''
-
     @staticmethod
     def is_variable_context_left_side(variable_node, parent_node):
         if variable_node.node_type == 'variable':
@@ -131,41 +112,6 @@ class GpApp:
         if len(filtered) == 0:
             return None
         return random.choice(filtered)
-
-    # crossover - replace one node of the first program with the other node of the second program
-    '''@staticmethod
-    def crossover(parent1, parent2):
-        parent11 = copy.deepcopy(parent1)
-        parent22 = copy.deepcopy(parent2)
-        parent1_statements = []
-        parent2_statements = []
-        GpApp.get_all_mutable_nodes(parent11, parent1_statements)
-        GpApp.get_all_mutable_nodes(parent22, parent2_statements)
-        node1, node_parent1 = random.choice(parent1_statements)
-        node2, node_parent2 = random.choice(parent2_statements)
-        node_idx1 = node_parent1.children.index(node1)
-        node_idx2 = node_parent2.children.index(node2)
-        buffer = node_parent1.children[node_idx1]
-        node_parent1.children[node_idx1] = node_parent2.children[node_idx2]
-        node_parent2.children[node_idx2] = buffer
-        # print("przeniesiono z 1 do 2:\n" + str(node1))
-        # print("przeniesiono z 2 do 1:\n" + str(node2))
-        return parent11, parent22'''
-
-    '''
-    "int": self.generate_terminal,
-            "float": self.generate_terminal,
-            "variable": self.generate_terminal,
-            "expression": self.generate_expression,
-            "logical_condition": self.generate_condition,
-            "comparison": self.generate_expression_for_condition,
-            "if": self.generate_statement,
-            "loop": self.generate_statement,
-            "assignment": self.generate_statement,
-            "out": self.generate_statement,
-            "in": self.generate_statement,
-            "block": self.generate_code_block,
-            "program": self.generate_program,'''
 
     @staticmethod
     def crossover(individual1, individual2):
@@ -418,9 +364,8 @@ class GpApp:
 
 def main():
     gp = GpApp(pop_size=50,
-               crossover_prob=0.1,
-               mutation_prob=0.1,
-               t_size=2,
+               crossover_prob=0.6,
+               t_size=3,
                generations=200,
                init_max_depth=7,
                init_max_program_size=10,
@@ -428,8 +373,8 @@ def main():
                max_var_number=20,
                grow_full_ratio=0.5,
                choose_roulette=False,
-               evaluation_fn=EvaluateFunctions.evaluate_2c,
-               filename='test_problems/problem_2c.txt')
+               evaluation_fn=EvaluateFunctions.evaluate_bool_function,
+               filename='test_problems/problem_bool.txt')
     gp.create_random_population()
     gp.evolve()
 
@@ -463,7 +408,7 @@ def mutate_test():
     generator = RandomGPlanguageGenerator(prog_size, block_size, max_depth)
     prog = generator.generate_program()
     gp = GpApp(pop_size=50,
-               crossover_prob=0.1,
+               crossover_prob=0.9,
                mutation_prob=0.1,
                t_size=5,
                generations=200,
