@@ -402,6 +402,86 @@ class EvaluateFunctions:
         return value
 
     @staticmethod
+    # 21. Negative To Zero (Q 9.6.8) Given a vector of integers,
+    # return the vector
+    # where all negative integers have been replaced by 0.
+    # learn programs to have the same amount of input as output in first generations
+    def evaluate_benchmark_21_stage_01(program, expected_input: list[int | float], expected_output: list[int | float]) -> float:
+        value = 0
+        interpreter = GplInterpreter(input_vector=expected_input)
+        program_output = interpreter.execute(program)
+        program_inputs_count = interpreter.used_inputs
+        input_number_error = abs(len(expected_input) - program_inputs_count)
+        value += input_number_error * 100
+        output_number_error = abs(len(expected_output) - len(program_output))
+        value += output_number_error * 100
+        if len(program_output) == len(expected_output):
+            value *= 0.5
+        return value
+
+    @staticmethod
+    # 21. Negative To Zero (Q 9.6.8) Given a vector of integers,
+    # return the vector
+    # where all negative integers have been replaced by 0.
+    # learn programs to have the same input as output in the next generations
+    def evaluate_benchmark_21_stage_02(program, expected_input: list[int | float],
+                                       expected_output: list[int | float]) -> float:
+        value = 0
+        interpreter = GplInterpreter(input_vector=expected_input)
+        program_output = interpreter.execute(program)
+        program_inputs_count = interpreter.used_inputs
+        input_number_error = abs(len(expected_input) - program_inputs_count)
+        value += input_number_error * 100
+        output_number_error = abs(len(expected_output) - len(program_output))
+        value += output_number_error * 100
+        if len(program_output) > len(expected_input):
+            for i in range(len(program_output)):
+                if i < len(expected_input):
+                    value += abs(program_output[i] - expected_input[i])
+                else:
+                    value += abs(program_output[i])
+        else:
+            for i in range(len(expected_input)):
+                if i < len(program_output):
+                    value += abs(program_output[i] - expected_input[i])
+                else:
+                    value += abs(expected_input[i])
+        if len(program_output) == len(expected_input):
+            value *= 0.5
+        return value
+
+    @staticmethod
+    # 21. Negative To Zero (Q 9.6.8) Given a vector of integers,
+    # return the vector
+    # where all negative integers have been replaced by 0.
+    # learn programs to chenge negative numbers to zero
+    def evaluate_benchmark_21_stage_03(program, expected_input: list[int | float],
+                                       expected_output: list[int | float]) -> float:
+        value = 0
+        interpreter = GplInterpreter(input_vector=expected_input)
+        program_output = interpreter.execute(program)
+        program_inputs_count = interpreter.used_inputs
+        input_number_error = abs(len(expected_input) - program_inputs_count)
+        value += input_number_error * 5
+        output_number_error = abs(len(expected_output) - len(program_output))
+        value += output_number_error * 5
+        if len(program_output) > len(expected_output):
+            for i in range(len(program_output)):
+                if i < len(expected_output):
+                    value += abs(program_output[i] - expected_output[i])
+                else:
+                    value += abs(program_output[i])
+        else:
+            for i in range(len(expected_output)):
+                if i < len(program_output):
+                    value += abs(program_output[i] - expected_output[i])
+                else:
+                    value += abs(expected_output[i])
+        if len(program_output) == len(expected_output):
+            value *= 0.5
+        return value
+
+    @staticmethod
     # 27. Median Given 3 integers, print their median.
     def evaluate_benchmark_27(program, expected_input: list[int | float], expected_output: list[int | float]) -> float:
         value = 0
