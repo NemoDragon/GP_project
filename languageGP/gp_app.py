@@ -44,6 +44,7 @@ class GpApp:
         self.avg_fitness = []
         self.done_generations = []
         self.best_indiv = None
+        self.current_gen = 0
 
     pop = []
 
@@ -375,6 +376,7 @@ class GpApp:
         self.print_parameters()
         self.stats(0)
         for gen in range(1, self.generations):
+            self.current_gen = gen
             for i in range(self.pop_size):
                 if random.random() < self.crossover_prob:
                     if self.choose_roulette:
