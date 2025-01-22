@@ -291,6 +291,62 @@ class EvaluateFunctions:
         return value
 
     @staticmethod
+    # 1.4.A Program powinien odczytać dziesięć pierwszych liczy z wejścia i zwrócić na wyjściu (jedynie)
+    # ich średnią arytmetyczną (zaokrągloną do pełnej liczby całkowitej).
+    # Na wejściu mogą być tylko całkowite liczby w zakresie [-99,99]
+    def evaluate_4a(program, expected_input: list[int | float], expected_output: list[int | float]) -> float:
+        value = 0
+        interpreter = GplInterpreter(input_vector=expected_input)
+        program_output = interpreter.execute(program)
+        program_inputs_count = interpreter.used_inputs
+        input_number_error = abs(len(expected_input) - program_inputs_count)
+        value += input_number_error * 100
+        output_number_error = abs(len(expected_output) - len(program_output))
+        value += output_number_error * 100
+        if len(program_output) == 0:
+            value += 1000
+        elif len(program_output) == 1 and expected_output[0] == program_output[0]:
+            value += 0
+        else:
+            for i in range(len(program_output)):
+                if i == 0:
+                    value += abs(program_output[i] - expected_output[i]) / 1000
+                else:
+                    value += abs(program_output[i]) / 1000
+        return value
+
+    @staticmethod
+    # 1.4.B Program powinien odczytać na początek z wejścia pierwszą liczbę (ma być to wartość nieujemna)
+    # a następnie tyle liczb (całkowitych) jaka jest wartość pierwszej odczytanej liczby i zwrócić na wyjściu
+    # (jedynie) ich średnią arytmetyczną zaokrągloną do pełnej liczby całkowitej (do średniej nie jest wliczana
+    # pierwsza odczytana liczba, która mówi, z ilu liczb chcemy obliczyć średnią).
+    # Na wejściu mogą być tylko całkowite liczby w zakresie [-99,99], pierwsza liczba może być tylko w zakresie [0,99].
+    def evaluate_4b(program, expected_input: list[int | float], expected_output: list[int | float]) -> float:
+        value = 0
+        interpreter = GplInterpreter(input_vector=expected_input)
+        program_output = interpreter.execute(program)
+        program_inputs_count = interpreter.used_inputs
+        input_number_error = abs(len(expected_input) - program_inputs_count)
+        value += input_number_error * 100
+        output_number_error = abs(len(expected_output) - len(program_output))
+        value += output_number_error * 100
+        if len(program_output) == 0:
+            value += 1000
+        elif len(program_output) == 1 and expected_output[0] == program_output[0]:
+            value += 0
+        else:
+            for i in range(len(program_output)):
+                if i == 0:
+                    value += abs(program_output[i] - expected_output[i]) / 100
+                else:
+                    value += abs(program_output[i]) / 100
+        if input_number_error == 0:
+            value *= 0.1
+        if expected_input[0] == program_inputs_count + 1:
+            value *= 0.01
+        return value
+
+    @staticmethod
     # 3. For Loop Index (Q 4.11.7) Given 3 integer inputs start, end and step, print the integers in the sequence
     def evaluate_benchmark_03(program, expected_input: list[int | float], expected_output: list[int | float]) -> float:
         value = 0

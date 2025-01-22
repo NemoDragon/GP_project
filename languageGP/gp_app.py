@@ -426,8 +426,8 @@ def main():
                max_var_number=20,
                grow_full_ratio=0.5,
                choose_roulette=False,
-               evaluation_fn=EvaluateFunctions.evaluate_benchmark_27,
-               filename='test_problems/benchmark_27.txt')
+               evaluation_fn=EvaluateFunctions.evaluate_4b,
+               filename='test_problems/problem_4b.txt')
     gp.create_random_population()
     gp.evolve()
 
