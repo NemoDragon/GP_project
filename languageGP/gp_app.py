@@ -428,8 +428,8 @@ def main():
                max_var_number=20,
                grow_full_ratio=0.5,
                choose_roulette=False,
-               evaluation_fn=EvaluateFunctions.evaluate_4b,
-               filename='test_problems/problem_4b.txt')
+               evaluation_fn=EvaluateFunctions.evaluate_2c,
+               filename='test_problems/problem_2c.txt')
     gp.create_random_population()
     gp.evolve()
 
