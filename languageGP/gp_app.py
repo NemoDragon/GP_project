@@ -364,7 +364,7 @@ class GpApp:
 
 def main():
     gp = GpApp(pop_size=50,
-               crossover_prob=0.6,
+               crossover_prob=0.1,
                t_size=3,
                generations=200,
                init_max_depth=7,
